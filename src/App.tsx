@@ -13,7 +13,7 @@ function App() {
   const theme = createTheme();
   return (
     <ThemeProvider theme={theme}>
-      <Container component="main" maxWidth="xs">
+      <Container component="main" maxWidth="lg">
         {tokenAuthenticated ? <Box>login</Box> : <Login />}
       </Container>
     </ThemeProvider>
