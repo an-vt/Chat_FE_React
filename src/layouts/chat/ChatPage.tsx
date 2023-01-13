@@ -1,15 +1,12 @@
-import { Card, Grid } from '@mui/material';
-import MDLoading from 'components/common/MDLoading';
-import { useChat } from 'context/chat';
-import * as React from 'react';
-import RightChat from './components/RightChat';
-import SideBarChat from './components/SideBarChat';
+import { Card, Grid } from "@mui/material";
+import RightChat from "./components/RightChat";
+import SideBarChat from "./components/SideBarChat";
 
 export default function ChatPage() {
-  const { loadingRooms, loadingMessages } = useChat();
+  // const { loadingRooms, loadingMessages } = useChat();
   return (
     <Card>
-      {loadingRooms && loadingMessages && <MDLoading />}
+      {/* {loadingRooms && loadingMessages && <MDLoading />} */}
       <Grid container>
         <Grid item xl={3} lg={3} md={3}>
           <SideBarChat />

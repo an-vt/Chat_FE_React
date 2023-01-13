@@ -1,44 +1,31 @@
-import { Autocomplete, Icon, InputAdornment, TextField } from '@mui/material';
-import { useAppSelector } from 'app/hooks';
-import { styleScroll } from 'common/styles';
-import MDBox from 'components/common/MDBox';
-import MDInput from 'components/common/MDInput';
-import MDPopup from 'components/common/MDPopup';
-import MDTypography from 'components/common/MDTypography';
-import { selectorOfficeSelected } from 'components/Navbars/DashboardNavbar/dashboardNavbarSlice';
-import { useChat } from 'context/chat';
-import useLoadMore from 'hooks/useLoadMore';
-import { AttendeeRoom, ChatParent } from 'models/Chat';
-import React, { SyntheticEvent, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { ChatApiService } from 'services/chat.service';
-import ChatRoom from './ChatRoom';
+import { Icon, InputAdornment } from "@mui/material";
+import { styleScroll } from "common/styles";
+import { ChatParent } from "models/Chat";
+import { useState } from "react";
 
 function SideBarChat() {
   const [openPopup, setOpenPopup] = useState<boolean>(false);
-  const { rooms, selectedRoom, setSearch, loadingRooms, hasMoreRooms, setPageNumberRooms, parentUnChats } = useChat();
-  const { t } = useTranslation('common');
+  // const { rooms, selectedRoom, setSearch, loadingRooms, hasMoreRooms, setPageNumberRooms, parentUnChats } = useChat();
   const [parentUnChat, setParentUnChat] = useState<ChatParent>();
-  const officeSelected = useAppSelector(selectorOfficeSelected);
   const closePopup = () => {
     setOpenPopup(false);
     setParentUnChat(null);
   };
 
-  const { lastElementRef } = useLoadMore(rooms, loadingRooms, hasMoreRooms, setPageNumberRooms);
+  // const { lastElementRef } = useLoadMore(rooms, loadingRooms, hasMoreRooms, setPageNumberRooms);
 
   const handleClick = () => setOpenPopup(true);
 
   const handleOK = () => {
-    ChatApiService.addParentChat(parentUnChat?.number, officeSelected?.id)
-      .then(() => {
-        // clear parent unchat when change office
-        setParentUnChat(null);
-      })
-      .catch((error: any) => {
-        console.log(error);
-      });
-    setOpenPopup(false);
+    // ChatApiService.addParentChat(parentUnChat?.number, officeSelected?.id)
+    //   .then(() => {
+    //     // clear parent unchat when change office
+    //     setParentUnChat(null);
+    //   })
+    //   .catch((error: any) => {
+    //     console.log(error);
+    //   });
+    // setOpenPopup(false);
   };
 
   return (
@@ -46,24 +33,25 @@ function SideBarChat() {
       borderRight="1px solid #c5c5c580"
       pb={7}
       sx={{
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '83.8vh',
-        maxHeight: '83.8vh',
-      }}>
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        height: "83.8vh",
+        maxHeight: "83.8vh",
+      }}
+    >
       <MDBox>
         <MDInput
           variant="outlined"
           sx={{
             flex: 1,
             p: 2,
-            borderTopLeftRadius: '10px',
-            height: '77px',
+            borderTopLeftRadius: "10px",
+            height: "77px",
           }}
-          onChange={(e: any) => setSearch(e.target.value.trim())}
+          // onChange={(e: any) => setSearch(e.target.value.trim())}
           fullWidth
-          placeholder={t('chat.talkSearch')}
+          placeholder="chat.talkSearch"
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -73,8 +61,15 @@ function SideBarChat() {
           }}
         />
       </MDBox>
-      <MDBox sx={{ width: '100%', height: '100%', overflowY: 'auto', ...styleScroll }}>
-        {rooms?.length > 0 &&
+      <MDBox
+        sx={{
+          width: "100%",
+          height: "100%",
+          overflowY: "auto",
+          ...styleScroll,
+        }}
+      >
+        {/* {rooms?.length > 0 &&
           rooms.map((item: AttendeeRoom, index: number) => {
             if (rooms.length === index + 1) {
               return (
@@ -86,58 +81,80 @@ function SideBarChat() {
                 />
               );
             } else {
-              return <ChatRoom attendeeRoom={item} key={item.roomId} active={item.roomId === selectedRoom?.roomId} />;
+              return (
+                <ChatRoom
+                  attendeeRoom={item}
+                  key={item.roomId}
+                  active={item.roomId === selectedRoom?.roomId}
+                />
+              );
             }
           })}
-      </MDBox>
+      </MDBox> */}
       <MDBox
         sx={{
-          position: 'absolute',
-          display: 'flex',
-          alignItems: 'center',
-          border: '1px solid #ccc',
+          position: "absolute",
+          display: "flex",
+          alignItems: "center",
+          border: "1px solid #ccc",
           borderRadius: 2,
           p: 0.3,
           pr: 1,
           bottom: 0,
-          right: '16px',
-          transform: 'translateY(-50%)',
-          cursor: 'pointer',
+          right: "16px",
+          transform: "translateY(-50%)",
+          cursor: "pointer",
         }}
-        onClick={handleClick}>
+        onClick={handleClick}
+      >
         <Icon>add_icon</Icon>
         <MDTypography variant="body2" fontWeight="bold" ml={0.5}>
-          {t('chat.talkParrentAddBtn')}
+          {"chat.talkParrentAddBtn"}
         </MDTypography>
       </MDBox>
-      <MDPopup
+      {/* <MDPopup
         open={openPopup}
-        title={t('chat.addTitlePopup')}
-        textBtnOk={t('chat.addBtn')}
+        title={"chat.addTitlePopup"}
+        textBtnOk={"chat.addBtn"}
         handleOk={handleOK}
         closePopup={closePopup}
         disabledBtnOk={!parentUnChat}
-        iconClose>
+        iconClose
+      >
         <MDBox
           sx={{
             py: 2,
             px: 10,
-          }}>
+          }}
+        >
           <Autocomplete
-            noOptionsText={t('msg.ERR1019')}
+            noOptionsText={"msg.ERR1019"}
             options={parentUnChats}
             size="small"
-            getOptionLabel={(option: ChatParent) => `${option.lastName}${option.firstName}`}
-            onChange={(_event: SyntheticEvent<Element, Event>, value: string | ChatParent) => {
-              typeof value === 'object' && setParentUnChat(value);
+            getOptionLabel={(option: ChatParent) =>
+              `${option.lastName}${option.firstName}`
+            }
+            onChange={(
+              _event: SyntheticEvent<Element, Event>,
+              value: string | ChatParent,
+            ) => {
+              typeof value === "object" && setParentUnChat(value);
             }}
-            value={parentUnChats.find((item: ChatParent) => item.id === parentUnChat?.id) || null}
-            renderInput={params => (
-              <TextField size="small" label={parentUnChat ? '' : t('chat.menuPopup')} {...params} />
+            value={
+              parentUnChats.find(
+                (item: ChatParent) => item.id === parentUnChat?.id,
+              ) || null
+            }
+            renderInput={(params) => (
+              <TextField
+                size="small"
+                label={parentUnChat ? "" : t("chat.menuPopup")}
+                {...params}
+              />
             )}
           />
         </MDBox>
-      </MDPopup>
+      </MDPopup> */}
     </MDBox>
   );
 }
