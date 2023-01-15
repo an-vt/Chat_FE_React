@@ -1,9 +1,8 @@
+import { useAuth } from "../../context/AuthProvider";
 import ChatPage from "./ChatPage";
 
 export default function ChatLayout() {
-  return (
-    // <ChatProvider>
-    <ChatPage />
-    // </ChatProvider>
-  );
+  const { userInfo } = useAuth();
+  console.log("🚀 ~ file: index.tsx:6 ~ ChatLayout ~ userInfo", userInfo);
+  return <ChatPage />;
 }
