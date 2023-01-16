@@ -10,7 +10,11 @@ import {
 import userApi from "../api/userAPI";
 import { StorageKeys } from "../common/constants";
 import { AuthToken, UserInfo } from "../models";
-import { getFromStorage, saveToStorage } from "../utils/storage";
+import {
+  getFromStorage,
+  removeFromStorage,
+  saveToStorage,
+} from "../utils/storage";
 
 interface AuthContextType {
   userInfo: UserInfo;
@@ -50,11 +54,17 @@ export function AuthProvider({
       .catch(() => {
         setUserInfo({} as UserInfo);
         setTokenAuthenticated(false);
+        removeFromStorage(StorageKeys.ACCESS_TOKEN);
+        removeFromStorage(StorageKeys.REMEMBER_ME);
         window.location.href = "/login";
       });
   }, []);
 
-  useEffect(fetchDataUser, []);
+  useEffect(() => {
+    if (tokenAuthenticated) {
+      fetchDataUser();
+    }
+  }, [tokenAuthenticated]);
 
   const memoedValue = useMemo(
     () => ({

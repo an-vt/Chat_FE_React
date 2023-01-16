@@ -21,6 +21,7 @@ function App() {
         <Routes>
           <Route path="/chat" element={<ChatLayout />} />
           <Route path="/setAvatar" element={<SetAvatar />} />
+          <Route path="*" element={<Navigate to="/chat" />} />
         </Routes>
       )}
       <ToastContainer
