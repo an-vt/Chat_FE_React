@@ -1,18 +1,15 @@
-import { AuthLogin, AuthRegister, UserInfo } from "../models";
+import { AuthLogin, AuthRegister } from "../models";
 import axiosClient from "./axiosClient";
 
+const AUTH_ENDPOINT = "/oauth";
 const authApi = {
   login(data: AuthLogin) {
-    const url = "/oauth/token";
+    const url = `${AUTH_ENDPOINT}/token`;
     return axiosClient.post<AuthLogin>(url, data);
   },
   register(data: AuthRegister) {
-    const url = "/oauth/register";
+    const url = `${AUTH_ENDPOINT}/register`;
     return axiosClient.post<AuthRegister>(url, data);
-  },
-  getMe(): Promise<UserInfo | undefined> {
-    const url = "/api/v1/user/me";
-    return axiosClient.get(url);
   },
 };
 

@@ -1,5 +1,13 @@
-import { createContext, ReactNode, useContext, useMemo, useState } from "react";
-import authApi from "../api/authAPI";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import userApi from "../api/userAPI";
 import { StorageKeys } from "../common/constants";
 import { AuthToken, UserInfo } from "../models";
 import { getFromStorage, saveToStorage } from "../utils/storage";
@@ -9,6 +17,7 @@ interface AuthContextType {
   tokenAuthenticated: boolean;
   saveToken: (userToken: AuthToken) => void;
   saveUserInfo: (userInfo: UserInfo) => void;
+  fetchDataUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -32,11 +41,20 @@ export function AuthProvider({
     setUserInfo(user);
   };
 
-  useMemo(() => {
-    authApi.getMe().then((response) => {
-      setUserInfo(response as UserInfo);
-    });
+  const fetchDataUser = useCallback(() => {
+    userApi
+      .getMe()
+      .then((response) => {
+        setUserInfo(response as UserInfo);
+      })
+      .catch(() => {
+        setUserInfo({} as UserInfo);
+        setTokenAuthenticated(false);
+        window.location.href = "/login";
+      });
   }, []);
+
+  useEffect(fetchDataUser, []);
 
   const memoedValue = useMemo(
     () => ({
@@ -44,8 +62,9 @@ export function AuthProvider({
       tokenAuthenticated,
       saveToken,
       saveUserInfo,
+      fetchDataUser,
     }),
-    [tokenAuthenticated, userInfo, saveUserInfo, saveToken],
+    [tokenAuthenticated, userInfo, saveUserInfo, saveToken, fetchDataUser],
   );
 
   return (

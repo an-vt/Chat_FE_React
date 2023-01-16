@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import authApi from "../../../api/authAPI";
+import userApi from "../../../api/userAPI";
 import Logo from "../../../assets/logo.svg";
 import { StorageKeys } from "../../../common/constants";
 import { useAuth } from "../../../context/AuthProvider";
@@ -162,7 +163,7 @@ function Login() {
         if (data) {
           saveToken(data);
         }
-        const userInfo: UserInfo | undefined = await authApi.getMe();
+        const userInfo: UserInfo | undefined = await userApi.getMe();
         if (userInfo) {
           saveUserInfo(userInfo);
           if (userInfo.isAvatar) {
