@@ -1,22 +1,38 @@
-import { Box, Container } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import "./App.css";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "./context/AuthProvider";
-import Login from "./layouts/login";
+import "./index.css";
+import { Login, Register } from "./layouts/auth";
+import ChatLayout from "./layouts/chat";
+import SetAvatar from "./layouts/chat/components/SetAvatar";
 
 function App() {
   const { tokenAuthenticated } = useAuth();
-  console.log(
-    "🚀 ~ file: App.tsx:9 ~ App ~ tokenAuthenticated",
-    tokenAuthenticated,
-  );
-  const theme = createTheme();
   return (
-    <ThemeProvider theme={theme}>
-      <Container component="main" maxWidth="xs">
-        {tokenAuthenticated ? <Box>login</Box> : <Login />}
-      </Container>
-    </ThemeProvider>
+    <div>
+      {!tokenAuthenticated ? (
+        <Routes>
+          <Route path="*" element={<Navigate to="/login" />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+      ) : (
+        <Routes>
+          <Route path="/chat" element={<ChatLayout />} />
+          <Route path="/setAvatar" element={<SetAvatar />} />
+          <Route path="*" element={<Navigate to="/chat" />} />
+        </Routes>
+      )}
+      <ToastContainer
+        position={toast.POSITION.BOTTOM_RIGHT}
+        autoClose={8000}
+        draggable
+        pauseOnHover
+        style={{ fontSize: "14px" }}
+        theme="dark"
+      />
+    </div>
   );
 }
 
