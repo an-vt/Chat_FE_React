@@ -83,5 +83,8 @@ export function AuthProvider({
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (typeof context === "undefined")
+    throw new Error("useAuth must be used within AuthProvider");
+  return context;
 }

@@ -1,14 +1,34 @@
-@import-normalize;
-body {
+@import "normalize.css/normalize.css";
+/* body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+} */
+
+* {
+  box-sizing: inherit;
+}
+
+html {
+  /* font-size mặc định trình duyệt là 16px
+  62.5% là 10px
+  */
+  font-size: 62.5%;
+  /* sans-serif chủng chữ không có chân */
+  font-family: "Roboto", sans-serif;
+  box-sizing: border-box;
+}
+
+p {
+  font-size: 1rem;
+  line-height: 1.6rem;
 }
