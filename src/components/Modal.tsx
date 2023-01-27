@@ -5,6 +5,7 @@ import styled from "styled-components";
 import Portal from "./Portal";
 
 interface Props {
+  title?: string;
   visible: boolean;
   onClose: any;
   children: ReactNode;
@@ -17,13 +18,17 @@ const IconClose = styled.div`
   cursor: pointer;
 `;
 
-const Content = styled.div`
-  padding: 40px;
-  min-width: 350px;
-  max-width: 450px;
-`;
+function Modal({ title = "", visible, onClose, children }: Props) {
+  const Content = styled.div`
+    padding: 0 20px 20px 20px;
+    min-width: 350px;
+    max-width: 450px;
 
-function Modal({ visible, onClose, children }: Props) {
+    .title {
+      text-align: center;
+    }
+  `;
+
   return (
     <CSSTransition in={visible} timeout={250} classNames="zoom" unmountOnExit>
       {(status) => (
@@ -32,7 +37,8 @@ function Modal({ visible, onClose, children }: Props) {
           onClose={onClose}
           bodyStyle={{ transition: "all 250ms" }}
         >
-          <Content>
+          <Content style={{ paddingTop: title ? 0 : "40px" }}>
+            {title && <h2 className="title">{title}</h2>}
             <IconClose onClick={onClose}>
               <UilTimes size={25} />
             </IconClose>

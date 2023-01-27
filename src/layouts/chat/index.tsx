@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import ChatProvider from "../../context/ChatProvider";
-import { ChatContainer } from "./components/ChatContainer";
+import { useChat } from "../../context/ChatProvider";
+import ChatContainer from "./components/ChatContainer";
 import Contacts from "./components/Contacts";
 import Welcome from "./components/Welcome";
 
@@ -26,20 +26,13 @@ const Container = styled.div`
 `;
 
 export default function ChatLayout() {
-  const currentChat = undefined;
+  const { selectedRoom } = useChat();
   return (
-    <ChatProvider>
-      <Container>
-        <div className="container">
-          <Contacts />
-          {currentChat === undefined ? (
-            <Welcome />
-          ) : (
-            // <ChatContainer currentChat={currentChat} socket={socket} />
-            <ChatContainer />
-          )}
-        </div>
-      </Container>
-    </ChatProvider>
+    <Container>
+      <div className="container">
+        <Contacts />
+        {selectedRoom ? <ChatContainer /> : <Welcome />}
+      </div>
+    </Container>
   );
 }

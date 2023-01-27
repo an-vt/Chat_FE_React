@@ -1,14 +1,22 @@
-import { UilSearch, UilPlusCircle } from "@iconscout/react-unicons";
+import {
+  UilAngleRightB,
+  UilPlusCircle,
+  UilSearch,
+  UilUsersAlt,
+} from "@iconscout/react-unicons";
+import chatApi from "api/chatAPI";
+import { Room, RoomAdd } from "models";
 import { useState } from "react";
 import styled from "styled-components";
 import Logo from "../../../assets/logo.svg";
 import Modal from "../../../components/Modal";
 import { useAuth } from "../../../context/AuthProvider";
 import { useChat } from "../../../context/ChatProvider";
+import SuggestItem from "./SuggestItem";
 
 const Container = styled.div`
   display: grid;
-  grid-template-rows: 10% 5% 70% 15%;
+  grid-template-rows: 10% 6% 69% 15%;
   overflow: hidden;
   background-color: #080420;
   .header {
@@ -60,6 +68,7 @@ const Container = styled.div`
       font-size: 14px;
       color: white;
       border-radius: inherit;
+      padding: 6px 0;
     }
   }
 
@@ -69,6 +78,7 @@ const Container = styled.div`
     align-items: center;
     overflow: auto;
     gap: 0.8rem;
+    margin-top: 8px;
     &::-webkit-scrollbar {
       width: 0.2rem;
       &-thumb {
@@ -82,7 +92,7 @@ const Container = styled.div`
       min-height: 5rem;
       cursor: pointer;
       width: 90%;
-      border-radius: 0.2rem;
+      border-radius: 0.8rem;
       padding: 0.4rem;
       display: flex;
       gap: 1rem;
@@ -90,11 +100,11 @@ const Container = styled.div`
       transition: 0.5s ease-in-out;
       .avatar {
         img {
-          height: 3rem;
+          width: 3rem;
         }
       }
       .username {
-        h3 {
+        h2 {
           color: white;
         }
       }
@@ -112,7 +122,7 @@ const Container = styled.div`
     gap: 2rem;
     .avatar {
       img {
-        height: 4rem;
+        width: 3rem;
         max-inline-size: 100%;
       }
     }
@@ -143,12 +153,60 @@ const ModalContent = styled.div`
       border-radius: 6px;
     }
   }
+
+  .suggest__list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: auto;
+    height: 100%;
+    max-height: calc(270px);
+  }
+
+  .group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 8px 0;
+    cursor: pointer;
+    &__left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        background-color: #ccc;
+        border-radius: 50%;
+      }
+      p {
+        font-size: 14px;
+      }
+    }
+
+    &__right {
+      display: flex;
+      align-items: center;
+    }
+  }
 `;
 
 export default function Contacts() {
-  const [show, setShow] = useState<boolean>(true);
-  const { rooms } = useChat();
+  const [show, setShow] = useState<boolean>(false);
+  const [checkedCreateGroup, setCheckedCreateGroup] = useState<boolean>(false);
+  const {
+    rooms,
+    members,
+    memberUnAdds,
+    fetchDataRoom,
+    selectedRoom,
+    setSelectedRoom,
+  } = useChat();
   const { userInfo } = useAuth();
+  console.log("🚀 ~ file: Contacts.tsx:207 ~ Contacts ~ rooms", rooms);
+
   // const [currentUserName, setCurrentUserName] = useState(undefined);
   // const [currentUserImage, setCurrentUserImage] = useState(undefined);
   // const [currentSelected, setCurrentSelected] = useState(undefined);
@@ -159,27 +217,93 @@ export default function Contacts() {
   //   setCurrentUserName(data.username);
   //   setCurrentUserImage(data.avatarImage);
   // }, []);
-  const changeCurrentChat = () => {
-    console.log("bbbb");
-
-    // setCurrentSelected(index);
-    // changeChat(contact);
-  };
 
   const handleKeyDown = () => {
     console.log("aaa");
   };
 
+  const handleClickCreateGroup = () => setCheckedCreateGroup(true);
+
+  const onAddNewMessage = async (memberId: string) => {
+    const data: RoomAdd = {
+      memberIds: [userInfo._id, memberId],
+      type: "SELF",
+    };
+    try {
+      await chatApi.createRoom(data);
+    } catch (error: any) {
+      console.log(`Create room error : ${error.message}`);
+    }
+  };
+
+  const handleClickIconAdd = () => {
+    setShow(true);
+    if (typeof fetchDataRoom === "function") fetchDataRoom();
+  };
+
+  const handleClosePopup = () => {
+    setShow(false);
+    setCheckedCreateGroup(false);
+  };
+
+  const handleChangeRoom = (room: Room) => {
+    if (typeof setSelectedRoom === "function") setSelectedRoom(room);
+  };
+
   return (
     <>
-      <Modal visible={show} onClose={() => setShow(false)}>
+      <Modal
+        title={`New ${checkedCreateGroup ? "Group" : "Message"}`}
+        visible={show}
+        onClose={handleClosePopup}
+      >
         <ModalContent className="content">
           <input
             type="text"
             className="content__input"
             placeholder="Enter your name friend"
           />
-          <h2>acdasdfasdf</h2>
+          {!checkedCreateGroup && (
+            <div className="group">
+              <div
+                role="button"
+                tabIndex={0}
+                className="group__left"
+                onClick={handleClickCreateGroup}
+                onKeyDown={() => console.log("key down")}
+              >
+                <span className="group__left__icon">
+                  <UilUsersAlt size={30} />
+                </span>
+                <p>Create a new group</p>
+              </div>
+              <div className="group__right">
+                <UilAngleRightB />
+              </div>
+            </div>
+          )}
+          <h2>Suggested</h2>
+          <div className="suggest__list">
+            {checkedCreateGroup
+              ? members.map((item) => (
+                  <SuggestItem
+                    name={item.name ?? ""}
+                    image={item.avatarUrl ?? ""}
+                    checkedCreateGroup={checkedCreateGroup}
+                    onClick={onAddNewMessage}
+                    memberId={item._id}
+                  />
+                ))
+              : memberUnAdds.map((item) => (
+                  <SuggestItem
+                    name={item.user?.name ?? ""}
+                    image={item.user?.avatarUrl ?? ""}
+                    checkedCreateGroup={checkedCreateGroup}
+                    onClick={onAddNewMessage}
+                    memberId={item.userId}
+                  />
+                ))}
+          </div>
         </ModalContent>
       </Modal>
       <Container>
@@ -191,7 +315,7 @@ export default function Contacts() {
           <div className="menu">
             <UilPlusCircle
               className="menu__icon"
-              onClick={() => setShow(true)}
+              onClick={handleClickIconAdd}
             />
           </div>
         </div>
@@ -206,25 +330,23 @@ export default function Contacts() {
           />
         </div>
         <div className="contacts">
-          {rooms.map((room) => {
+          {rooms?.map((room) => {
             return (
               <div
                 role="button"
                 tabIndex={0}
                 key={room._id}
-                // className={`room ${index === currentSelected ? "selected" : ""}`}
-                onClick={() => changeCurrentChat()}
-                // onClick={() => changeCurrentChat(index, room)}
+                className={`room ${
+                  selectedRoom?._id === room._id ? "selected" : ""
+                }`}
+                onClick={() => handleChangeRoom(room)}
                 onKeyDown={handleKeyDown}
               >
                 <div className="avatar">
-                  <img
-                    // src={`data:image/svg+xml;base64,${room.}`}
-                    alt=""
-                  />
+                  <img src={room.avatarUrl} alt="avatar" />
                 </div>
                 <div className="username">
-                  <h3>{room.name}</h3>
+                  <h2>{room.name}</h2>
                 </div>
               </div>
             );
