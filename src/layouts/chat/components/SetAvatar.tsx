@@ -85,7 +85,7 @@ export default function SetAvatar() {
 
       try {
         // eslint-disable-next-line no-param-reassign, no-underscore-dangle
-        await userApi.updateAvatar(userInfo._id, data);
+        await userApi.updateAvatar(userInfo?._id, data);
         fetchDataUser();
 
         navigate("/chat");

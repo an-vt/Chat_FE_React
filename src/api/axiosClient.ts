@@ -10,10 +10,16 @@ import axios, {
 import { toast } from "react-toastify";
 import { StorageKeys } from "../common/constants";
 import { AuthToken } from "../models";
-import { getFromStorage } from "../utils/storage";
+import {
+  getFromStorage,
+  saveToStorage,
+  removeFromStorage,
+} from "../utils/storage";
+
+const API_URI = process.env.REACT_APP_API_URI || "http://localhost:1337";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:1337",
+  baseURL: API_URI,
   withCredentials: false, // Window Authentification
   headers: {
     "Content-Type": "application/json",
@@ -67,7 +73,34 @@ axiosClient.interceptors.response.use(
           originalConfig.retry = true;
 
           // Refresh token here
+          const userToken: AuthToken = JSON.parse(
+            getFromStorage(StorageKeys.ACCESS_TOKEN) ?? "",
+          );
+          const URL_REFRESH = `${API_URI}/oauth/token/refresh`;
+          axios
+            .get(URL_REFRESH, {
+              headers: {
+                Authorization: `Bearer ${userToken.refreshToken}`,
+              },
+            })
+            .then((response) => {
+              saveToStorage(
+                StorageKeys.ACCESS_TOKEN,
+                JSON.stringify(response.data),
+              );
+
+              return axiosClient(originalConfig);
+            })
+            .catch(() => {
+              removeFromStorage(StorageKeys.ACCESS_TOKEN);
+              removeFromStorage(StorageKeys.REMEMBER_ME);
+              window.location.href = "/login";
+            });
         }
+      } else {
+        removeFromStorage(StorageKeys.ACCESS_TOKEN);
+        removeFromStorage(StorageKeys.REMEMBER_ME);
+        window.location.href = "/login";
       }
     }
     return Promise.reject(error);
