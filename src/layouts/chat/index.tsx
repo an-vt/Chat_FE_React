@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { useChat } from "../../context/ChatProvider";
 import ChatContainer from "./components/ChatContainer";
+import ChatHeader from "./components/ChatHeader";
 import Contacts from "./components/Contacts";
 import Welcome from "./components/Welcome";
 
@@ -23,6 +24,11 @@ const Container = styled.div`
       grid-template-columns: 35% 65%;
     }
   }
+
+  .chat__content {
+    display: grid;
+    grid-template-rows: 10% 90%;
+  }
 `;
 
 export default function ChatLayout() {
@@ -31,7 +37,10 @@ export default function ChatLayout() {
     <Container>
       <div className="container">
         <Contacts />
-        {selectedRoom ? <ChatContainer /> : <Welcome />}
+        <div className="chat__content">
+          <ChatHeader />
+          {selectedRoom ? <ChatContainer /> : <Welcome />}
+        </div>
       </div>
     </Container>
   );

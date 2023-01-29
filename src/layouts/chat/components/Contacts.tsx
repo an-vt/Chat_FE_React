@@ -196,27 +196,9 @@ const ModalContent = styled.div`
 export default function Contacts() {
   const [show, setShow] = useState<boolean>(false);
   const [checkedCreateGroup, setCheckedCreateGroup] = useState<boolean>(false);
-  const {
-    rooms,
-    members,
-    memberUnAdds,
-    fetchDataRoom,
-    selectedRoom,
-    setSelectedRoom,
-  } = useChat();
+  const { rooms, members, memberUnAdds, selectedRoom, setSelectedRoom } =
+    useChat();
   const { userInfo } = useAuth();
-  console.log("🚀 ~ file: Contacts.tsx:207 ~ Contacts ~ rooms", rooms);
-
-  // const [currentUserName, setCurrentUserName] = useState(undefined);
-  // const [currentUserImage, setCurrentUserImage] = useState(undefined);
-  // const [currentSelected, setCurrentSelected] = useState(undefined);
-  // useEffect(async () => {
-  //   const data = await JSON.parse(
-  //     localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY),
-  //   );
-  //   setCurrentUserName(data.username);
-  //   setCurrentUserImage(data.avatarImage);
-  // }, []);
 
   const handleKeyDown = () => {
     console.log("aaa");
@@ -238,7 +220,6 @@ export default function Contacts() {
 
   const handleClickIconAdd = () => {
     setShow(true);
-    if (typeof fetchDataRoom === "function") fetchDataRoom();
   };
 
   const handleClosePopup = () => {
@@ -287,6 +268,7 @@ export default function Contacts() {
             {checkedCreateGroup
               ? members.map((item) => (
                   <SuggestItem
+                    key={item._id}
                     name={item.name ?? ""}
                     image={item.avatarUrl ?? ""}
                     checkedCreateGroup={checkedCreateGroup}
@@ -296,11 +278,12 @@ export default function Contacts() {
                 ))
               : memberUnAdds.map((item) => (
                   <SuggestItem
-                    name={item.user?.name ?? ""}
-                    image={item.user?.avatarUrl ?? ""}
+                    key={item._id}
+                    name={item.name ?? ""}
+                    image={item.avatarUrl ?? ""}
                     checkedCreateGroup={checkedCreateGroup}
                     onClick={onAddNewMessage}
-                    memberId={item.userId}
+                    memberId={item._id}
                   />
                 ))}
           </div>

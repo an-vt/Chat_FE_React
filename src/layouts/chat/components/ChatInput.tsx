@@ -5,6 +5,7 @@ import styled from "styled-components";
 const Container = styled.div`
   display: grid;
   align-items: center;
+  height: 70px;
   grid-template-columns: 5% 95%;
   background-color: #080420;
   padding: 0 2rem;
