@@ -33,6 +33,7 @@ const Header = styled.div`
     height: 45px;
     border-radius: 10px;
     margin-left: auto;
+    border: none;
   }
 `;
 

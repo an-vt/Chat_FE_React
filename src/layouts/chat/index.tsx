@@ -28,6 +28,7 @@ const Container = styled.div`
   .chat__content {
     display: grid;
     grid-template-rows: 10% 90%;
+    overflow: hidden;
   }
 `;
 

@@ -11,24 +11,27 @@ interface Props {
   children: ReactNode;
 }
 
-const IconClose = styled.div`
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  cursor: pointer;
+const Content = styled.div`
+  width: 450px;
+  background-color: #000;
+  border-radius: 10px;
+  position: relative;
+
+  .title {
+    padding-top: 20px;
+    text-align: center;
+    color: white;
+  }
+
+  .icon-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+  }
 `;
 
 function Modal({ title = "", visible, onClose, children }: Props) {
-  const Content = styled.div`
-    padding: 0 20px 20px 20px;
-    min-width: 350px;
-    max-width: 450px;
-
-    .title {
-      text-align: center;
-    }
-  `;
-
   return (
     <CSSTransition in={visible} timeout={250} classNames="zoom" unmountOnExit>
       {(status) => (
@@ -39,9 +42,12 @@ function Modal({ title = "", visible, onClose, children }: Props) {
         >
           <Content style={{ paddingTop: title ? 0 : "40px" }}>
             {title && <h2 className="title">{title}</h2>}
-            <IconClose onClick={onClose}>
-              <UilTimes size={25} />
-            </IconClose>
+            <UilTimes
+              color="#fff"
+              size={25}
+              onClick={onClose}
+              className="icon-close"
+            />
             {children}
           </Content>
         </Portal>

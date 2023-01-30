@@ -144,30 +144,42 @@ const Container = styled.div`
 
 const ModalContent = styled.div`
   .content {
-    &__input {
+    &__input,
+    &__input::placeholder {
       width: 100%;
       padding: 8px;
       font-size: 16px;
       outline: none;
-      border: 1px solid #ccc;
+      border: 1px solid #fff;
+      color: #000;
       border-radius: 6px;
     }
   }
 
-  .suggest__list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    overflow: auto;
-    height: 100%;
-    max-height: calc(270px);
+  .suggest {
+    &__title {
+      color: white;
+      margin-left: 10px;
+    }
+
+    &__list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: auto;
+      height: 100%;
+      max-height: calc(270px);
+    }
   }
 
   .group {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background-color: #333;
+    padding: 0 8px;
     margin: 8px 0;
+    margin-top: 15px;
     cursor: pointer;
     &__left {
       display: flex;
@@ -178,17 +190,19 @@ const ModalContent = styled.div`
         align-items: center;
         justify-content: center;
         padding: 8px;
-        background-color: #ccc;
+        border: 1px solid #fff;
         border-radius: 50%;
       }
       p {
-        font-size: 14px;
+        font-size: 16px;
+        color: white;
       }
     }
 
     &__right {
       display: flex;
       align-items: center;
+      border-radius: 1px solid #fff;
     }
   }
 `;
@@ -254,16 +268,16 @@ export default function Contacts() {
                 onKeyDown={() => console.log("key down")}
               >
                 <span className="group__left__icon">
-                  <UilUsersAlt size={30} />
+                  <UilUsersAlt size={30} color="white" />
                 </span>
                 <p>Create a new group</p>
               </div>
               <div className="group__right">
-                <UilAngleRightB />
+                <UilAngleRightB color="white" />
               </div>
             </div>
           )}
-          <h2>Suggested</h2>
+          <h2 className="suggest__title">Suggested</h2>
           <div className="suggest__list">
             {checkedCreateGroup
               ? members.map((item) => (
