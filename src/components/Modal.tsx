@@ -16,9 +16,9 @@ const Content = styled.div`
   background-color: #000;
   border-radius: 10px;
   position: relative;
+  padding: 20px;
 
   .title {
-    padding-top: 20px;
     text-align: center;
     color: white;
   }
@@ -40,7 +40,7 @@ function Modal({ title = "", visible, onClose, children }: Props) {
           onClose={onClose}
           bodyStyle={{ transition: "all 250ms" }}
         >
-          <Content style={{ paddingTop: title ? 0 : "40px" }}>
+          <Content>
             {title && <h2 className="title">{title}</h2>}
             <UilTimes
               color="#fff"

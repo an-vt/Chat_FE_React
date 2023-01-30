@@ -259,14 +259,14 @@ export default function Contacts() {
             placeholder="Enter your name friend"
           />
           {!checkedCreateGroup && (
-            <div className="group">
-              <div
-                role="button"
-                tabIndex={0}
-                className="group__left"
-                onClick={handleClickCreateGroup}
-                onKeyDown={() => console.log("key down")}
-              >
+            <div
+              className="group"
+              role="button"
+              tabIndex={0}
+              onClick={handleClickCreateGroup}
+              onKeyDown={() => console.log("key down")}
+            >
+              <div className="group__left">
                 <span className="group__left__icon">
                   <UilUsersAlt size={30} color="white" />
                 </span>

@@ -22,7 +22,7 @@ const Container = styled.div`
     gap: 8px;
     height: 50px;
     img {
-      width: 50px;
+      width: 40px;
     }
     p {
       font-size: 16px;
