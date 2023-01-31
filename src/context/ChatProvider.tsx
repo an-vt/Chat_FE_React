@@ -11,7 +11,7 @@ import {
 import { io, Socket } from "socket.io-client";
 import { ClientToServerEvents, ServerToClientEvents } from "types/socket-io";
 import chatApi from "../api/chatAPI";
-import { Message, Room, UserInfo } from "../models";
+import { Attendee, Message, Room, UserInfo } from "../models";
 import { useAuth } from "./AuthProvider";
 
 interface ChatContextType {
@@ -55,7 +55,8 @@ export default function ChatProvider({
       socket.current = io(
         process.env.REACT_APP_API_URI ?? "http://127.0.0.1:1337",
       );
-      socket.current.emit("add-user", userInfo._id);
+
+      socket.current.emit("connected-user", userInfo._id);
     }
   }, [userInfo?._id]);
 
@@ -63,6 +64,12 @@ export default function ChatProvider({
     if (socket.current) {
       socket.current.on("msg-receive", (data: Message[]) => {
         setMessages(data);
+      });
+      socket.current.on("list-member-unadd-receive", (data: UserInfo[]) => {
+        setMemberUnAdds(data);
+      });
+      socket.current.on("list-room-receive", (data: Attendee) => {
+        setRooms(data.rooms);
       });
     }
   }, [socket.current]);

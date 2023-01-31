@@ -6,6 +6,7 @@ import {
 } from "@iconscout/react-unicons";
 import chatApi from "api/chatAPI";
 import { Room, RoomAdd } from "models";
+import { JoinRoomSocket } from "models/ChatSocket";
 import { useState } from "react";
 import styled from "styled-components";
 import Logo from "../../../assets/logo.svg";
@@ -213,6 +214,7 @@ export default function Contacts() {
   const { rooms, members, memberUnAdds, selectedRoom, setSelectedRoom } =
     useChat();
   const { userInfo } = useAuth();
+  const { socket } = useChat();
 
   const handleKeyDown = () => {
     console.log("aaa");
@@ -220,13 +222,19 @@ export default function Contacts() {
 
   const handleClickCreateGroup = () => setCheckedCreateGroup(true);
 
-  const onAddNewMessage = async (memberId: string) => {
+  const handleAddChat = async (memberId: string) => {
     const data: RoomAdd = {
       memberIds: [userInfo._id, memberId],
       type: "SELF",
     };
     try {
       await chatApi.createRoom(data);
+
+      // add chat for update list memberUnadds
+      socket.current.emit("list-member-unadd-send", data);
+
+      // update list rooms
+      socket.current.emit("list-room-send", data);
     } catch (error: any) {
       console.log(`Create room error : ${error.message}`);
     }
@@ -242,7 +250,14 @@ export default function Contacts() {
   };
 
   const handleChangeRoom = (room: Room) => {
-    if (typeof setSelectedRoom === "function") setSelectedRoom(room);
+    if (typeof setSelectedRoom === "function") {
+      setSelectedRoom(room);
+      const data: JoinRoomSocket = {
+        userId: userInfo._id,
+        roomId: room._id,
+      };
+      socket.current.emit("join-room", data);
+    }
   };
 
   return (
@@ -286,7 +301,7 @@ export default function Contacts() {
                     name={item.name ?? ""}
                     image={item.avatarUrl ?? ""}
                     checkedCreateGroup={checkedCreateGroup}
-                    onClick={onAddNewMessage}
+                    onClick={handleAddChat}
                     memberId={item._id}
                   />
                 ))
@@ -296,7 +311,7 @@ export default function Contacts() {
                     name={item.name ?? ""}
                     image={item.avatarUrl ?? ""}
                     checkedCreateGroup={checkedCreateGroup}
-                    onClick={onAddNewMessage}
+                    onClick={handleAddChat}
                     memberId={item._id}
                   />
                 ))}

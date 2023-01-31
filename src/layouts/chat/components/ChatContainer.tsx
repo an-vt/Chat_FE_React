@@ -82,7 +82,7 @@ export default function ChatContainer() {
         await chatApi.sendMessage(data);
 
         // send to socket
-        socket.current.emit("send-msg", data);
+        socket.current.emit("msg-send", data);
 
         setTimeout(
           () => scrollRef.current?.scrollIntoView({ behavior: "smooth" }),
@@ -93,18 +93,6 @@ export default function ChatContainer() {
       }
     }
   };
-
-  // useEffect(() => {
-  //   if (socket.current) {
-  //     socket.current.on("msg-receive", (msg) => {
-  //       setArrivalMessage({ fromSelf: false, message: msg });
-  //     });
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
-  // }, [arrivalMessage]);
 
   useEffect(() => {
     setTimeout(() => {
