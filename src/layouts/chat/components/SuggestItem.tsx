@@ -13,7 +13,8 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-right: 8px;
+  background-color: #333;
+  padding: 0 8px;
   cursor: pointer;
   div {
     display: flex;
@@ -21,10 +22,11 @@ const Container = styled.div`
     gap: 8px;
     height: 50px;
     img {
-      width: 50px;
+      width: 40px;
     }
     p {
       font-size: 16px;
+      color: white;
     }
   }
 
@@ -85,7 +87,11 @@ export default function SuggestItem({
       {checkedCreateGroup ? (
         <input type="checkbox" />
       ) : (
-        <UilPlusCircle size={30} onClick={() => onClick(memberId)} />
+        <UilPlusCircle
+          color="#fff"
+          size={30}
+          onClick={() => onClick(memberId)}
+        />
       )}
     </Container>
   );

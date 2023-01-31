@@ -6,6 +6,7 @@ import {
 } from "@iconscout/react-unicons";
 import chatApi from "api/chatAPI";
 import { Room, RoomAdd } from "models";
+import { JoinRoomSocket } from "models/ChatSocket";
 import { useState } from "react";
 import styled from "styled-components";
 import Logo from "../../../assets/logo.svg";
@@ -144,30 +145,42 @@ const Container = styled.div`
 
 const ModalContent = styled.div`
   .content {
-    &__input {
+    &__input,
+    &__input::placeholder {
       width: 100%;
       padding: 8px;
       font-size: 16px;
       outline: none;
-      border: 1px solid #ccc;
+      border: 1px solid #fff;
+      color: #000;
       border-radius: 6px;
     }
   }
 
-  .suggest__list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    overflow: auto;
-    height: 100%;
-    max-height: calc(270px);
+  .suggest {
+    &__title {
+      color: white;
+      margin-left: 10px;
+    }
+
+    &__list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: auto;
+      height: 100%;
+      max-height: calc(270px);
+    }
   }
 
   .group {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background-color: #333;
+    padding: 0 8px;
     margin: 8px 0;
+    margin-top: 15px;
     cursor: pointer;
     &__left {
       display: flex;
@@ -178,17 +191,19 @@ const ModalContent = styled.div`
         align-items: center;
         justify-content: center;
         padding: 8px;
-        background-color: #ccc;
+        border: 1px solid #fff;
         border-radius: 50%;
       }
       p {
-        font-size: 14px;
+        font-size: 16px;
+        color: white;
       }
     }
 
     &__right {
       display: flex;
       align-items: center;
+      border-radius: 1px solid #fff;
     }
   }
 `;
@@ -196,27 +211,10 @@ const ModalContent = styled.div`
 export default function Contacts() {
   const [show, setShow] = useState<boolean>(false);
   const [checkedCreateGroup, setCheckedCreateGroup] = useState<boolean>(false);
-  const {
-    rooms,
-    members,
-    memberUnAdds,
-    fetchDataRoom,
-    selectedRoom,
-    setSelectedRoom,
-  } = useChat();
+  const { rooms, members, memberUnAdds, selectedRoom, setSelectedRoom } =
+    useChat();
   const { userInfo } = useAuth();
-  console.log("🚀 ~ file: Contacts.tsx:207 ~ Contacts ~ rooms", rooms);
-
-  // const [currentUserName, setCurrentUserName] = useState(undefined);
-  // const [currentUserImage, setCurrentUserImage] = useState(undefined);
-  // const [currentSelected, setCurrentSelected] = useState(undefined);
-  // useEffect(async () => {
-  //   const data = await JSON.parse(
-  //     localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY),
-  //   );
-  //   setCurrentUserName(data.username);
-  //   setCurrentUserImage(data.avatarImage);
-  // }, []);
+  const { socket } = useChat();
 
   const handleKeyDown = () => {
     console.log("aaa");
@@ -224,13 +222,19 @@ export default function Contacts() {
 
   const handleClickCreateGroup = () => setCheckedCreateGroup(true);
 
-  const onAddNewMessage = async (memberId: string) => {
+  const handleAddChat = async (memberId: string) => {
     const data: RoomAdd = {
       memberIds: [userInfo._id, memberId],
       type: "SELF",
     };
     try {
       await chatApi.createRoom(data);
+
+      // add chat for update list memberUnadds
+      socket.current.emit("list-member-unadd-send", data);
+
+      // update list rooms
+      socket.current.emit("list-room-send", data);
     } catch (error: any) {
       console.log(`Create room error : ${error.message}`);
     }
@@ -238,7 +242,6 @@ export default function Contacts() {
 
   const handleClickIconAdd = () => {
     setShow(true);
-    if (typeof fetchDataRoom === "function") fetchDataRoom();
   };
 
   const handleClosePopup = () => {
@@ -247,7 +250,14 @@ export default function Contacts() {
   };
 
   const handleChangeRoom = (room: Room) => {
-    if (typeof setSelectedRoom === "function") setSelectedRoom(room);
+    if (typeof setSelectedRoom === "function") {
+      setSelectedRoom(room);
+      const data: JoinRoomSocket = {
+        userId: userInfo._id,
+        roomId: room._id,
+      };
+      socket.current.emit("join-room", data);
+    }
   };
 
   return (
@@ -264,43 +274,45 @@ export default function Contacts() {
             placeholder="Enter your name friend"
           />
           {!checkedCreateGroup && (
-            <div className="group">
-              <div
-                role="button"
-                tabIndex={0}
-                className="group__left"
-                onClick={handleClickCreateGroup}
-                onKeyDown={() => console.log("key down")}
-              >
+            <div
+              className="group"
+              role="button"
+              tabIndex={0}
+              onClick={handleClickCreateGroup}
+              onKeyDown={() => console.log("key down")}
+            >
+              <div className="group__left">
                 <span className="group__left__icon">
-                  <UilUsersAlt size={30} />
+                  <UilUsersAlt size={30} color="white" />
                 </span>
                 <p>Create a new group</p>
               </div>
               <div className="group__right">
-                <UilAngleRightB />
+                <UilAngleRightB color="white" />
               </div>
             </div>
           )}
-          <h2>Suggested</h2>
+          <h2 className="suggest__title">Suggested</h2>
           <div className="suggest__list">
             {checkedCreateGroup
               ? members.map((item) => (
                   <SuggestItem
+                    key={item._id}
                     name={item.name ?? ""}
                     image={item.avatarUrl ?? ""}
                     checkedCreateGroup={checkedCreateGroup}
-                    onClick={onAddNewMessage}
+                    onClick={handleAddChat}
                     memberId={item._id}
                   />
                 ))
               : memberUnAdds.map((item) => (
                   <SuggestItem
-                    name={item.user?.name ?? ""}
-                    image={item.user?.avatarUrl ?? ""}
+                    key={item._id}
+                    name={item.name ?? ""}
+                    image={item.avatarUrl ?? ""}
                     checkedCreateGroup={checkedCreateGroup}
-                    onClick={onAddNewMessage}
-                    memberId={item.userId}
+                    onClick={handleAddChat}
+                    memberId={item._id}
                   />
                 ))}
           </div>

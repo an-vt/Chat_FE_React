@@ -22,6 +22,7 @@ interface AuthContextType {
   saveToken: (userToken: AuthToken) => void;
   saveUserInfo: (userInfo: UserInfo) => void;
   fetchDataUser: () => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -36,14 +37,21 @@ export function AuthProvider({
   );
   const [userInfo, setUserInfo] = useState<UserInfo>({} as UserInfo);
 
-  const saveToken = (userToken: AuthToken) => {
+  const saveToken = useCallback((userToken: AuthToken) => {
     saveToStorage(StorageKeys.ACCESS_TOKEN, JSON.stringify(userToken));
     setTokenAuthenticated(true);
-  };
+  }, []);
 
-  const saveUserInfo = (user: UserInfo) => {
+  const saveUserInfo = useCallback((user: UserInfo) => {
     setUserInfo(user);
-  };
+  }, []);
+
+  const logout = useCallback(() => {
+    setTokenAuthenticated(false);
+    removeFromStorage(StorageKeys.ACCESS_TOKEN);
+    removeFromStorage(StorageKeys.REMEMBER_ME);
+    window.location.href = "/login";
+  }, []);
 
   const fetchDataUser = useCallback(() => {
     userApi
@@ -56,7 +64,7 @@ export function AuthProvider({
         setTokenAuthenticated(false);
         removeFromStorage(StorageKeys.ACCESS_TOKEN);
         removeFromStorage(StorageKeys.REMEMBER_ME);
-        window.location.href = "/login";
+        // window.location.href = "/login";
       });
   }, []);
 
@@ -64,7 +72,7 @@ export function AuthProvider({
     if (tokenAuthenticated) {
       fetchDataUser();
     }
-  }, [tokenAuthenticated]);
+  }, [tokenAuthenticated, fetchDataUser]);
 
   const memoedValue = useMemo(
     () => ({
@@ -73,8 +81,16 @@ export function AuthProvider({
       saveToken,
       saveUserInfo,
       fetchDataUser,
+      logout,
     }),
-    [tokenAuthenticated, userInfo, saveUserInfo, saveToken, fetchDataUser],
+    [
+      tokenAuthenticated,
+      userInfo,
+      saveUserInfo,
+      saveToken,
+      fetchDataUser,
+      logout,
+    ],
   );
 
   return (

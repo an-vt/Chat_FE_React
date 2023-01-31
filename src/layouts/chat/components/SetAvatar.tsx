@@ -100,7 +100,7 @@ export default function SetAvatar() {
       try {
         const promise = [];
         for (let i = 0; i < 4; i++) {
-          promise.push(avatarApi.getImAGE(Math.round(Math.random() * 1000)));
+          promise.push(avatarApi.getImage(Math.round(Math.random() * 1000)));
         }
 
         const avatarImages: string[] = await Promise.all(promise).then(

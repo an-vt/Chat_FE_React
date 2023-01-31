@@ -1,4 +1,4 @@
-import { Attendee, Member, Message, RoomAdd } from "../models";
+import { Attendee, Message, RoomAdd, UserInfo } from "../models";
 import axiosClient from "./axiosClient";
 
 const CHAT_ENDPOINT = "/api/v1/chat";
@@ -11,7 +11,7 @@ const chatApi = {
     const url = `${CHAT_ENDPOINT}/add`;
     return axiosClient.post(url, data);
   },
-  getAllMemberUnAdd(): Promise<Member[] | undefined> {
+  getAllMemberUnAdd(): Promise<UserInfo[] | undefined> {
     const url = `${CHAT_ENDPOINT}/member/unadd`;
     return axiosClient.get(url);
   },

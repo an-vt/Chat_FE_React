@@ -2,39 +2,21 @@ import chatApi from "api/chatAPI";
 import { useAuth } from "context/AuthProvider";
 import { useChat } from "context/ChatProvider";
 import { Message } from "models";
+import { useEffect, useRef } from "react";
 import styled from "styled-components";
 import ChatInput from "./ChatInput";
 
 const Container = styled.div`
-  display: grid;
-  grid-template-rows: 10% 80% 10%;
   gap: 0.1rem;
   overflow: hidden;
+  /* display: grid;
+  grid-template-rows: 90% 10%;
   @media screen and (min-width: 720px) and (max-width: 1080px) {
-    grid-template-rows: 15% 70% 15%;
-  }
-  .chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 2rem;
-    .user-details {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      .avatar {
-        img {
-          height: 3rem;
-        }
-      }
-      .username {
-        h3 {
-          color: white;
-        }
-      }
-    }
-  }
+    grid-template-rows: 85% 15%;
+  } */
   .chat-messages {
+    height: 100%;
+    max-height: calc(100% - 70px);
     padding: 1rem 2rem;
     display: flex;
     flex-direction: column;
@@ -79,32 +61,10 @@ const Container = styled.div`
 `;
 
 export default function ChatContainer() {
-  // const scrollRef = useRef();
+  const scrollRef = useRef<any>();
   // const [arrivalMessage, setArrivalMessage] = useState(null);
-  const { selectedRoom, messages } = useChat();
+  const { selectedRoom, messages, socket } = useChat();
   const { userInfo } = useAuth();
-
-  // useEffect(async () => {
-  //   const data = await JSON.parse(
-  //     localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY),
-  //   );
-  //   const response = await axios.post(recieveMessageRoute, {
-  //     from: data._id,
-  //     to: selectedRoom._id,
-  //   });
-  //   setMessages(response.data);
-  // }, [selectedRoom]);
-
-  // useEffect(() => {
-  //   const getCurrentChat = async () => {
-  //     if (selectedRoom) {
-  //       await JSON.parse(
-  //         localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY),
-  //       )._id;
-  //     }
-  //   };
-  //   getCurrentChat();
-  // }, [selectedRoom]);
 
   const handleSendMsg = async (msg: string) => {
     if (selectedRoom?.type === "SELF") {
@@ -120,46 +80,35 @@ export default function ChatContainer() {
 
       try {
         await chatApi.sendMessage(data);
+
+        // send to socket
+        socket.current.emit("msg-send", data);
+
+        setTimeout(
+          () => scrollRef.current?.scrollIntoView({ behavior: "smooth" }),
+          100,
+        );
       } catch (error: any) {
         console.log(error.message);
       }
     }
   };
 
-  // useEffect(() => {
-  //   if (socket.current) {
-  //     socket.current.on("msg-recieve", (msg) => {
-  //       setArrivalMessage({ fromSelf: false, message: msg });
-  //     });
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
-  // }, [arrivalMessage]);
-
-  // useEffect(() => {
-  //   scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  // }, [messages]);
+  useEffect(() => {
+    setTimeout(() => {
+      scrollRef.current?.scrollIntoView();
+    }, 50);
+  }, [selectedRoom?._id]);
 
   return (
     <Container>
-      <div className="chat-header">
-        <div className="user-details">
-          <div className="avatar">
-            <img src={selectedRoom?.avatarUrl} alt="avatar" />
-          </div>
-          <div className="username">
-            <h3>{selectedRoom?.name}</h3>
-          </div>
-        </div>
-        {/* <Logout /> */}
-      </div>
       <div className="chat-messages">
-        {messages.map((message) => {
+        {messages.map((message, index) => {
           return (
-            // <div ref={scrollRef} key={uuidv4()}>
-            <div key={message._id}>
+            <div
+              ref={index + 1 === messages?.length ? scrollRef : null}
+              key={message._id}
+            >
               <div
                 className={`message ${
                   message.senderUId === userInfo._id ? "sended" : "recieved"

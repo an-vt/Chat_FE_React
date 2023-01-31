@@ -2,24 +2,26 @@ import userApi from "api/userAPI";
 import {
   createContext,
   ReactNode,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { io, Socket } from "socket.io-client";
+import { ClientToServerEvents, ServerToClientEvents } from "types/socket-io";
 import chatApi from "../api/chatAPI";
-import { Member, Message, Room, UserInfo } from "../models";
+import { Attendee, Message, Room, UserInfo } from "../models";
 import { useAuth } from "./AuthProvider";
 
 interface ChatContextType {
   rooms: Room[];
   members: UserInfo[];
-  memberUnAdds: Member[];
+  memberUnAdds: UserInfo[];
   selectedRoom: Room | null;
-  fetchDataRoom?: () => void;
   setSelectedRoom?: any;
   messages: Message[];
+  socket: any;
 }
 
 const initChatContext: ChatContextType = {
@@ -28,9 +30,12 @@ const initChatContext: ChatContextType = {
   memberUnAdds: [],
   selectedRoom: null,
   messages: [],
+  socket: null,
 };
 
-const ChatContext = createContext<ChatContextType>(initChatContext);
+const ChatContext = createContext<ChatContextType>(
+  initChatContext as ChatContextType,
+);
 
 export default function ChatProvider({
   children,
@@ -41,36 +46,53 @@ export default function ChatProvider({
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [members, setMembers] = useState<UserInfo[]>([]);
-  const [memberUnAdds, setMemberUnAdds] = useState<Member[]>([]);
+  const [memberUnAdds, setMemberUnAdds] = useState<UserInfo[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const socket = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>();
 
-  const fetchDataRoom = useCallback(async () => {
-    try {
-      const [membersUnAdds, users] = await Promise.all([
-        chatApi.getAllMemberUnAdd(),
-        userApi.getAllUser(),
-      ]);
-      const userMaps =
-        users?.reduce(
-          (userMap: { [key: string]: UserInfo }, user: UserInfo) => {
-            const newUserMap = { ...userMap };
-            newUserMap[user._id] = user;
-            return newUserMap;
-          },
-          {},
-        ) ?? {};
+  useEffect(() => {
+    if (userInfo?._id) {
+      socket.current = io(
+        process.env.REACT_APP_API_URI ?? "http://127.0.0.1:1337",
+      );
 
-      const memberUnAddList =
-        membersUnAdds?.map((member: Member) => ({
-          ...member,
-          user: userMaps[member.userId],
-        })) ?? [];
-      if (users) setMembers(users);
-      setMemberUnAdds(memberUnAddList);
-    } catch (error: any) {
-      console.log(error.message);
+      socket.current.emit("connected-user", userInfo._id);
     }
-  }, []);
+  }, [userInfo?._id]);
+
+  useEffect(() => {
+    if (socket.current) {
+      socket.current.on("msg-receive", (data: Message[]) => {
+        setMessages(data);
+      });
+      socket.current.on("list-member-unadd-receive", (data: UserInfo[]) => {
+        setMemberUnAdds(data);
+      });
+      socket.current.on("list-room-receive", (data: Attendee) => {
+        setRooms(data.rooms);
+      });
+    }
+  }, [socket.current]);
+
+  useEffect(() => {
+    async function fetchDataRoom() {
+      try {
+        const [membersUnAdds, users] = await Promise.all([
+          chatApi.getAllMemberUnAdd(),
+          userApi.getAllUser(),
+        ]);
+
+        if (membersUnAdds) setMemberUnAdds(membersUnAdds);
+        if (users) {
+          setMembers(users.filter((user) => user._id !== userInfo._id));
+        }
+      } catch (error: any) {
+        console.log(error.message);
+      }
+    }
+
+    if (userInfo?._id) fetchDataRoom();
+  }, [userInfo?._id]);
 
   useEffect(() => {
     async function fetchListRoom() {
@@ -102,12 +124,12 @@ export default function ChatProvider({
       rooms,
       members,
       memberUnAdds,
-      fetchDataRoom,
       selectedRoom,
       setSelectedRoom,
       messages,
+      socket,
     }),
-    [rooms, members, memberUnAdds, fetchDataRoom, selectedRoom, messages],
+    [rooms, members, memberUnAdds, selectedRoom, messages],
   );
 
   return (

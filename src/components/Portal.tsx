@@ -24,7 +24,6 @@ const Overlay = styled.div`
 `;
 
 const PortalContent = styled.div`
-  background-color: #fff;
   position: relative;
   border-radius: 15px;
 `;

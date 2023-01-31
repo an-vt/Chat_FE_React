@@ -3,7 +3,7 @@ import { AuthLogin } from "../models";
 
 const AVATAR_ENDPOINT = "https://api.multiavatar.com/4645646";
 const avatarApi = {
-  getImAGE(number: number) {
+  getImage(number: number) {
     const url = `${AVATAR_ENDPOINT}/${number}`;
     return axios.get<AuthLogin>(url);
   },
