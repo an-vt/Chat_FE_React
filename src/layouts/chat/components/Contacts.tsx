@@ -7,7 +7,7 @@ import {
 import chatApi from "api/chatAPI";
 import { Room, RoomAdd } from "models";
 import { JoinRoomSocket } from "models/ChatSocket";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import styled from "styled-components";
 import Logo from "../../../assets/logo.svg";
 import Modal from "../../../components/Modal";
@@ -145,8 +145,21 @@ const Container = styled.div`
 
 const ModalContent = styled.div`
   .content {
-    &__input,
-    &__input::placeholder {
+    &__input {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      outline: none;
+      border: none;
+      outline: none;
+      color: #fff;
+      border-radius: 6px;
+      background-color: transparent;
+      margin-bottom: 12px;
+    }
+
+    &__input__search,
+    &__input__search::placeholder {
       width: 100%;
       padding: 8px;
       font-size: 16px;
@@ -168,8 +181,7 @@ const ModalContent = styled.div`
       flex-direction: column;
       gap: 8px;
       overflow: auto;
-      height: 100%;
-      max-height: calc(270px);
+      height: 282px;
     }
   }
 
@@ -210,6 +222,9 @@ const ModalContent = styled.div`
 
 export default function Contacts() {
   const [show, setShow] = useState<boolean>(false);
+  const [memberIdchecked, setMemberIdchecked] = useState<string[]>([]);
+  const [groupName, setGroupName] = useState<string>("");
+  const haveGroupName = groupName.trim().length > 0;
   const [checkedCreateGroup, setCheckedCreateGroup] = useState<boolean>(false);
   const {
     rooms,
@@ -217,19 +232,24 @@ export default function Contacts() {
     memberUnAdds,
     selectedRoom,
     setSelectedRoom,
-    search,
-    setSearch,
+    searchChat,
   } = useChat();
   const { userInfo } = useAuth();
   const { socket } = useChat();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleKeyDown = () => {
     console.log("aaa");
   };
 
-  const handleClickCreateGroup = () => setCheckedCreateGroup(true);
+  const handleClickCreateGroup = () => {
+    if (!checkedCreateGroup) {
+      setCheckedCreateGroup(true);
+      if (inputRef?.current) inputRef.current.value = "";
+    }
+  };
 
-  const handleAddChat = async (memberId: string) => {
+  const handleAddChatSelf = async (memberId: string) => {
     const data: RoomAdd = {
       memberIds: [userInfo._id, memberId],
       type: "SELF",
@@ -243,7 +263,30 @@ export default function Contacts() {
       // update list rooms
       socket.current.emit("list-room-send", data);
     } catch (error: any) {
-      console.log(`Create room error : ${error.message}`);
+      console.log(`Create chat self error : ${error.message}`);
+    }
+  };
+
+  const hanldeAddChatGroup = async () => {
+    const data: RoomAdd = {
+      memberIds: [...memberIdchecked, userInfo._id],
+      type: "GROUP",
+      groupName,
+    };
+    try {
+      await chatApi.createRoom(data);
+    } catch (error: any) {
+      console.log(`Create chat group error : ${error.message}`);
+    }
+  };
+
+  const handleClickCheckboxMemberGroup = async (memberId: string) => {
+    const checked = !!memberIdchecked.find((item) => item === memberId);
+    if (checked) {
+      setMemberIdchecked((prevV) => prevV.filter((item) => item !== memberId));
+    } else {
+      const newMemberIdchecked = [...memberIdchecked, memberId];
+      setMemberIdchecked(newMemberIdchecked);
     }
   };
 
@@ -267,18 +310,45 @@ export default function Contacts() {
     }
   };
 
+  const handleCancel = () => {
+    if (checkedCreateGroup) {
+      setCheckedCreateGroup(false);
+      if (inputRef?.current) inputRef.current.value = "";
+    } else {
+      setShow(false);
+    }
+  };
+
   return (
     <>
       <Modal
         title={`New ${checkedCreateGroup ? "Group" : "Message"}`}
         visible={show}
         onClose={handleClosePopup}
+        onAdd={hanldeAddChatGroup}
+        onCancel={handleCancel}
+        disabledBtnAdd={memberIdchecked.length < 2 || !haveGroupName}
+        hideBtnAdd={!checkedCreateGroup}
       >
         <ModalContent className="content">
+          {checkedCreateGroup && (
+            <input
+              type="text"
+              className="content__input"
+              placeholder="Group name (required)"
+              onChange={(event: any) => setGroupName(event.target.value)}
+            />
+          )}
           <input
+            ref={inputRef}
             type="text"
-            className="content__input"
+            className="content__input__search"
             placeholder="Enter your name friend"
+            onChange={(event: any) =>
+              checkedCreateGroup
+                ? searchChat.member(event.target.value)
+                : searchChat["member-unadd"](event.target.value)
+            }
           />
           {!checkedCreateGroup && (
             <div
@@ -308,7 +378,12 @@ export default function Contacts() {
                     name={item.name ?? ""}
                     image={item.avatarUrl ?? ""}
                     checkedCreateGroup={checkedCreateGroup}
-                    onClick={handleAddChat}
+                    memberIdchecked={memberIdchecked}
+                    onClick={
+                      checkedCreateGroup
+                        ? handleClickCheckboxMemberGroup
+                        : handleAddChatSelf
+                    }
                     memberId={item._id}
                   />
                 ))
@@ -318,7 +393,7 @@ export default function Contacts() {
                     name={item.name ?? ""}
                     image={item.avatarUrl ?? ""}
                     checkedCreateGroup={checkedCreateGroup}
-                    onClick={handleAddChat}
+                    onClick={handleAddChatSelf}
                     memberId={item._id}
                   />
                 ))}
@@ -346,8 +421,7 @@ export default function Contacts() {
             className="search__input"
             type="text"
             placeholder="Search on messenger"
-            value={search}
-            onChange={(e: any) => setSearch(e.target.value)}
+            onChange={(e: any) => searchChat.room(e.target.value)}
           />
         </div>
         <div className="contacts">
@@ -385,11 +459,3 @@ export default function Contacts() {
     </>
   );
 }
-
-// import * as React from "react";
-
-// export interface IContactsProps {}
-
-// export default function Contacts(props: IContactsProps) {
-//   return <div>Contacts</div>;
-// }

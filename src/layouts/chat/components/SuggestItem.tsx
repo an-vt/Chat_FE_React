@@ -7,6 +7,7 @@ export interface ISuggestItemProps {
   memberId: string;
   checkedCreateGroup: boolean;
   onClick: (memberId: string) => void;
+  memberIdchecked?: string[];
 }
 
 const Container = styled.div`
@@ -77,6 +78,7 @@ export default function SuggestItem({
   checkedCreateGroup,
   memberId,
   onClick,
+  memberIdchecked = [],
 }: ISuggestItemProps) {
   return (
     <Container>
@@ -85,7 +87,11 @@ export default function SuggestItem({
         <p>{name}</p>
       </div>
       {checkedCreateGroup ? (
-        <input type="checkbox" />
+        <input
+          type="checkbox"
+          checked={memberIdchecked.includes(memberId)}
+          onClick={() => onClick(memberId)}
+        />
       ) : (
         <UilPlusCircle
           color="#fff"

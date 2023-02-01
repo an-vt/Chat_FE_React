@@ -97,10 +97,6 @@ axiosClient.interceptors.response.use(
               window.location.href = "/login";
             });
         }
-      } else {
-        removeFromStorage(StorageKeys.ACCESS_TOKEN);
-        removeFromStorage(StorageKeys.REMEMBER_ME);
-        window.location.href = "/login";
       }
     }
     return Promise.reject(error);

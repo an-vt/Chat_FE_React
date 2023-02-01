@@ -9,6 +9,12 @@ interface Props {
   visible: boolean;
   onClose: any;
   children: ReactNode;
+  onCancel: () => void;
+  onAdd: () => void;
+  disabledBtnCancel?: boolean;
+  disabledBtnAdd?: boolean;
+  hideBtnAdd?: boolean;
+  close?: boolean;
 }
 
 const Content = styled.div`
@@ -29,9 +35,51 @@ const Content = styled.div`
     right: 5px;
     cursor: pointer;
   }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+
+  .btn-cancel,
+  .btn-add {
+    background-color: unset;
+    color: white;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .btn-cancel:disabled,
+  .btn-add:disabled {
+    opacity: 0.6;
+  }
 `;
 
-function Modal({ title = "", visible, onClose, children }: Props) {
+function Modal({
+  visible,
+  onClose,
+  onCancel,
+  onAdd,
+  children,
+  title = "",
+  disabledBtnCancel = false,
+  disabledBtnAdd = false,
+  hideBtnAdd = false,
+  close = false,
+}: Props) {
+  const getOpacityChecked = (
+    _hideBtnAdd: boolean,
+    _disabledBtnAdd: boolean,
+  ): string => {
+    if (_hideBtnAdd) {
+      return "0";
+    }
+    return _disabledBtnAdd ? "0.6" : "1";
+  };
+
   return (
     <CSSTransition in={visible} timeout={250} classNames="zoom" unmountOnExit>
       {(status) => (
@@ -41,13 +89,37 @@ function Modal({ title = "", visible, onClose, children }: Props) {
           bodyStyle={{ transition: "all 250ms" }}
         >
           <Content>
-            {title && <h2 className="title">{title}</h2>}
-            <UilTimes
-              color="#fff"
-              size={25}
-              onClick={onClose}
-              className="icon-close"
-            />
+            <div className="header">
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={onCancel}
+                disabled={disabledBtnCancel}
+              >
+                Cancel
+              </button>
+              {title && <h2 className="title">{title}</h2>}
+              <button
+                type="button"
+                className="btn-add"
+                onClick={onAdd}
+                disabled={disabledBtnAdd}
+                style={{
+                  opacity: getOpacityChecked(hideBtnAdd, disabledBtnAdd),
+                  cursor: hideBtnAdd ? "unset" : "pointer",
+                }}
+              >
+                Create
+              </button>
+            </div>
+            {close && (
+              <UilTimes
+                color="#fff"
+                size={25}
+                onClick={onClose}
+                className="icon-close"
+              />
+            )}
             {children}
           </Content>
         </Portal>

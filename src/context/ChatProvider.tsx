@@ -2,6 +2,7 @@ import userApi from "api/userAPI";
 import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -22,9 +23,10 @@ interface ChatContextType {
   setSelectedRoom?: any;
   messages: Message[];
   socket: any;
-  setSearch?: any;
-  search: string;
+  searchChat: { [key in SearchType]: (search: string) => void };
 }
+
+export type SearchType = "room" | "member-unadd" | "member";
 
 const initChatContext: ChatContextType = {
   rooms: [],
@@ -33,7 +35,7 @@ const initChatContext: ChatContextType = {
   selectedRoom: null,
   messages: [],
   socket: null,
-  search: "",
+  searchChat: {} as { [key in SearchType]: (search: string) => void },
 };
 
 const ChatContext = createContext<ChatContextType>(
@@ -50,18 +52,67 @@ export default function ChatProvider({
   const [dataRoom, setDataRoom] = useState<Room[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [members, setMembers] = useState<UserInfo[]>([]);
+  const [dataMember, setDataMember] = useState<UserInfo[]>([]);
   const [memberUnAdds, setMemberUnAdds] = useState<UserInfo[]>([]);
+  const [dataMemberUnAdds, setDataMemberUnAdds] = useState<UserInfo[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const socket = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>();
-  const [search, setSearch] = useState<string>("");
+  const [searchRoomEmpty, setSearchRoomEmpty] = useState<boolean>(false);
+  const [searchMemberUnAddEmpty, setSearchMemberUnAddEmpty] =
+    useState<boolean>(false);
 
-  useEffect(() => {
-    setRooms(
-      dataRoom.filter((room) => {
-        return room.name.toLowerCase().includes(search.trim().toLowerCase());
-      }),
-    );
-  }, [search]);
+  const handleSearchRoom = useCallback(
+    (search: string) => {
+      if (search.trim().length === 0) {
+        setSearchRoomEmpty(true);
+      } else {
+        setRooms(
+          dataRoom.filter((room) => {
+            return room.name
+              .toLowerCase()
+              .includes(search.trim().toLowerCase());
+          }),
+        );
+      }
+    },
+    [dataRoom],
+  );
+
+  const handleSearchMemberUnAdd = useCallback(
+    (search: string) => {
+      if (search.trim().length === 0) {
+        setSearchMemberUnAddEmpty(true);
+      }
+      setMemberUnAdds(
+        dataMemberUnAdds.filter((item) => {
+          return item.name.toLowerCase().includes(search.trim().toLowerCase());
+        }),
+      );
+    },
+    [dataMemberUnAdds],
+  );
+
+  const handleSearchMember = useCallback(
+    (search: string) => {
+      setMembers(
+        dataMember.filter((member) => {
+          return member.name
+            .toLowerCase()
+            .includes(search.trim().toLowerCase());
+        }),
+      );
+    },
+    [dataMember],
+  );
+
+  const searchChat: { [key in SearchType]: (search: string) => void } = useMemo(
+    () => ({
+      room: handleSearchRoom,
+      "member-unadd": handleSearchMemberUnAdd,
+      member: handleSearchMember,
+    }),
+    [handleSearchRoom, handleSearchMemberUnAdd, handleSearchMember],
+  );
 
   useEffect(() => {
     if (userInfo?._id) {
@@ -79,11 +130,12 @@ export default function ChatProvider({
         setMessages(data);
       });
       socket.current.on("list-member-unadd-receive", (data: UserInfo[]) => {
-        setMemberUnAdds(data);
+        setDataMemberUnAdds(data);
+        if (searchMemberUnAddEmpty) setMemberUnAdds(data);
       });
       socket.current.on("list-room-receive", (data: Attendee) => {
         setDataRoom(data.rooms);
-        if (search.trim().length === 0) setRooms(data.rooms);
+        if (searchRoomEmpty) setRooms(data.rooms);
       });
     }
   }, [socket.current]);
@@ -96,9 +148,16 @@ export default function ChatProvider({
           userApi.getAllUser(),
         ]);
 
-        if (membersUnAdds) setMemberUnAdds(membersUnAdds);
+        if (membersUnAdds) {
+          setMemberUnAdds(membersUnAdds);
+          setDataMemberUnAdds(membersUnAdds);
+        }
         if (users) {
-          setMembers(users.filter((user) => user._id !== userInfo._id));
+          const memberFilters = users.filter(
+            (user) => user._id !== userInfo._id,
+          );
+          setMembers(memberFilters);
+          setDataMember(memberFilters);
         }
       } catch (error: any) {
         console.log(error.message);
@@ -145,10 +204,9 @@ export default function ChatProvider({
       setSelectedRoom,
       messages,
       socket,
-      setSearch,
-      search,
+      searchChat,
     }),
-    [rooms, members, memberUnAdds, selectedRoom, messages, search],
+    [rooms, members, memberUnAdds, selectedRoom, messages, searchChat],
   );
 
   return (

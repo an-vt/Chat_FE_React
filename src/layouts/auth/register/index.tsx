@@ -115,7 +115,8 @@ function Register() {
         await authApi.register(values);
         toast.success("Register successfully!");
       } catch (error: any) {
-        toast.error(error?.message);
+        const { msg } = error.response.data;
+        toast.error(msg);
       }
     }
   };
