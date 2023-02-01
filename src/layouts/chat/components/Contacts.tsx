@@ -1,6 +1,7 @@
 import {
   UilAngleRightB,
   UilPlusCircle,
+  UilPower,
   UilSearch,
   UilUsersAlt,
 } from "@iconscout/react-unicons";
@@ -16,15 +17,37 @@ import { useChat } from "../../../context/ChatProvider";
 import SuggestItem from "./SuggestItem";
 
 const Container = styled.div`
+  position: relative;
   display: grid;
   grid-template-rows: 10% 6% 69% 15%;
   overflow: hidden;
   background-color: #080420;
+  height: 100%;
+
+  .btn__logout {
+    position: absolute;
+    top: 5%;
+    transform: translateY(-50%);
+    left: 10px;
+    background-color: #9a86f3;
+    justify-content: center;
+    align-items: center;
+    width: 37px;
+    height: 37px;
+    border-radius: 10px;
+    margin-left: auto;
+    border: none;
+    cursor: pointer;
+    z-index: 1;
+    display: none;
+  }
+
   .header {
+    padding: 0 10px;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 4px;
     .brand {
       display: flex;
       align-items: center;
@@ -38,6 +61,10 @@ const Container = styled.div`
       }
     }
     .menu {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
       color: white;
       &__icon {
         cursor: pointer;
@@ -46,40 +73,46 @@ const Container = styled.div`
   }
 
   .search {
-    display: flex;
-    align-items: stretch;
-    gap: 4px;
-    background-color: #31285e;
-    margin: 0 6px;
-    border-radius: 25px;
     padding: 0 10px;
 
-    .search__icon {
+    &__content {
+      background-color: red;
       display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+      align-items: stretch;
+      gap: 4px;
+      background-color: #31285e;
+      height: 100%;
+      border-radius: 25px;
+      padding: 0 10px;
 
-    .search__input,
-    .search__input::placeholder {
-      flex: 1;
-      outline: none;
-      background-color: inherit;
-      border: none;
-      font-size: 14px;
-      color: white;
-      border-radius: inherit;
-      padding: 6px 0;
+      &__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      &__input,
+      &__input::placeholder {
+        flex: 1;
+        outline: none;
+        background-color: inherit;
+        border: none;
+        font-size: 14px;
+        color: white;
+        border-radius: inherit;
+        padding: 6px 0;
+      }
     }
   }
 
-  .contacts {
+  .room-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     overflow: auto;
     gap: 8px;
     margin-top: 16px;
+    padding-left: 10px;
     &::-webkit-scrollbar {
       width: 0.2rem;
       &-thumb {
@@ -92,7 +125,7 @@ const Container = styled.div`
       background-color: #ffffff34;
       min-height: 5rem;
       cursor: pointer;
-      width: 90%;
+      width: 98%;
       border-radius: 0.8rem;
       padding: 0.4rem;
       display: flex;
@@ -141,6 +174,18 @@ const Container = styled.div`
       }
     }
   }
+
+  // Mobile
+  @media screen and (max-width: 767px) {
+    .header {
+      padding: 0;
+      justify-content: center;
+    }
+
+    .btn__logout {
+      display: flex;
+    }
+  }
 `;
 
 const ModalContent = styled.div`
@@ -182,6 +227,15 @@ const ModalContent = styled.div`
       gap: 8px;
       overflow: auto;
       height: 282px;
+      padding-right: 8px;
+      &::-webkit-scrollbar {
+        width: 0.2rem;
+        &-thumb {
+          background-color: #ffffff39;
+          width: 0.1rem;
+          border-radius: 1rem;
+        }
+      }
     }
   }
 
@@ -234,7 +288,7 @@ export default function Contacts() {
     setSelectedRoom,
     searchChat,
   } = useChat();
-  const { userInfo } = useAuth();
+  const { userInfo, logout } = useAuth();
   const { socket } = useChat();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -400,7 +454,16 @@ export default function Contacts() {
           </div>
         </ModalContent>
       </Modal>
-      <Container>
+      <Container className="contact">
+        <button type="button" className="btn__logout" onClick={logout}>
+          <UilPower
+            style={{
+              backgroundColor: "#9a86f3",
+              color: "#ebe7ff",
+            }}
+            size={30}
+          />
+        </button>
         <div className="header">
           <div className="brand">
             <img src={Logo} alt="logo" />
@@ -414,17 +477,19 @@ export default function Contacts() {
           </div>
         </div>
         <div className="search">
-          <span className="search__icon">
-            <UilSearch size="20" color="#fff" />
-          </span>
-          <input
-            className="search__input"
-            type="text"
-            placeholder="Search on messenger"
-            onChange={(e: any) => searchChat.room(e.target.value)}
-          />
+          <div className="search__content">
+            <span className="search__content__icon">
+              <UilSearch size="20" color="#fff" />
+            </span>
+            <input
+              className="search__content__input"
+              type="text"
+              placeholder="Search on messenger"
+              onChange={(e: any) => searchChat.room(e.target.value)}
+            />
+          </div>
         </div>
-        <div className="contacts">
+        <div className="room-container">
           {rooms?.map((room) => {
             return (
               <div

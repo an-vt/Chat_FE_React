@@ -5,7 +5,11 @@ import ChatHeader from "./components/ChatHeader";
 import Contacts from "./components/Contacts";
 import Welcome from "./components/Welcome";
 
-const Container = styled.div`
+interface ContainerProps {
+  selectedRoom: boolean;
+}
+
+const Container = styled.div<ContainerProps>`
   height: 100vh;
   width: 100vw;
   display: flex;
@@ -30,12 +34,41 @@ const Container = styled.div`
     grid-template-rows: 10% 90%;
     overflow: hidden;
   }
+
+  // Mobile
+  @media screen and (max-width: 767px) {
+    .container {
+      width: 100%;
+      height: 100vh;
+      display: block;
+      overflow: hidden;
+    }
+
+    .welcome {
+      display: none;
+    }
+
+    .contact {
+      display: ${(p: ContainerProps) => {
+        return `${p.selectedRoom ? "none" : "grid"}`;
+      }};
+    }
+
+    .chat__content {
+      display: ${(p: ContainerProps) => {
+        return `${p.selectedRoom ? "grid" : "none"}`;
+      }};
+      height: ${(p: ContainerProps) => {
+        return `${p.selectedRoom && "100%"}`;
+      }};
+    }
+  }
 `;
 
 export default function ChatLayout() {
   const { selectedRoom } = useChat();
   return (
-    <Container>
+    <Container selectedRoom={!!selectedRoom}>
       <div className="container">
         <Contacts />
         <div className="chat__content">

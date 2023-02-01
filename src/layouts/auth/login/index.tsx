@@ -128,6 +128,13 @@ const FormContainer = styled.div`
       height: 100vh;
     }
   }
+
+  // Mobile
+  @media screen and (max-width: 767px) {
+    form {
+      padding: 40px;
+    }
+  }
 `;
 
 function Login() {

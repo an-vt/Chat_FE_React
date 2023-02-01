@@ -73,6 +73,13 @@ const FormContainer = styled.div`
       font-weight: bold;
     }
   }
+
+  // Mobile
+  @media screen and (max-width: 767px) {
+    form {
+      padding: 40px;
+    }
+  }
 `;
 
 function Register() {

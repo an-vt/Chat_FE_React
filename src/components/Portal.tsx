@@ -21,6 +21,7 @@ const Overlay = styled.div`
   position: absolute;
   inset: 0;
   background-color: "#6d7b89";
+  opacity: 0.6;
 `;
 
 const PortalContent = styled.div`
