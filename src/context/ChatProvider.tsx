@@ -22,6 +22,8 @@ interface ChatContextType {
   setSelectedRoom?: any;
   messages: Message[];
   socket: any;
+  setSearch?: any;
+  search: string;
 }
 
 const initChatContext: ChatContextType = {
@@ -31,6 +33,7 @@ const initChatContext: ChatContextType = {
   selectedRoom: null,
   messages: [],
   socket: null,
+  search: "",
 };
 
 const ChatContext = createContext<ChatContextType>(
@@ -44,11 +47,21 @@ export default function ChatProvider({
 }): JSX.Element {
   const { userInfo } = useAuth();
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [dataRoom, setDataRoom] = useState<Room[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [members, setMembers] = useState<UserInfo[]>([]);
   const [memberUnAdds, setMemberUnAdds] = useState<UserInfo[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const socket = useRef<Socket<ServerToClientEvents, ClientToServerEvents>>();
+  const [search, setSearch] = useState<string>("");
+
+  useEffect(() => {
+    setRooms(
+      dataRoom.filter((room) => {
+        return room.name.toLowerCase().includes(search.trim().toLowerCase());
+      }),
+    );
+  }, [search]);
 
   useEffect(() => {
     if (userInfo?._id) {
@@ -69,7 +82,8 @@ export default function ChatProvider({
         setMemberUnAdds(data);
       });
       socket.current.on("list-room-receive", (data: Attendee) => {
-        setRooms(data.rooms);
+        setDataRoom(data.rooms);
+        if (search.trim().length === 0) setRooms(data.rooms);
       });
     }
   }, [socket.current]);
@@ -98,7 +112,10 @@ export default function ChatProvider({
     async function fetchListRoom() {
       try {
         const response = await chatApi.getListRoom(userInfo?._id);
-        if (response) setRooms(response.rooms);
+        if (response) {
+          setRooms(response.rooms);
+          setDataRoom(response.rooms);
+        }
       } catch (error: any) {
         console.log(error.message);
       }
@@ -128,8 +145,10 @@ export default function ChatProvider({
       setSelectedRoom,
       messages,
       socket,
+      setSearch,
+      search,
     }),
-    [rooms, members, memberUnAdds, selectedRoom, messages],
+    [rooms, members, memberUnAdds, selectedRoom, messages, search],
   );
 
   return (

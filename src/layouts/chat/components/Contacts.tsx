@@ -78,8 +78,8 @@ const Container = styled.div`
     flex-direction: column;
     align-items: center;
     overflow: auto;
-    gap: 0.8rem;
-    margin-top: 8px;
+    gap: 8px;
+    margin-top: 16px;
     &::-webkit-scrollbar {
       width: 0.2rem;
       &-thumb {
@@ -211,8 +211,15 @@ const ModalContent = styled.div`
 export default function Contacts() {
   const [show, setShow] = useState<boolean>(false);
   const [checkedCreateGroup, setCheckedCreateGroup] = useState<boolean>(false);
-  const { rooms, members, memberUnAdds, selectedRoom, setSelectedRoom } =
-    useChat();
+  const {
+    rooms,
+    members,
+    memberUnAdds,
+    selectedRoom,
+    setSelectedRoom,
+    search,
+    setSearch,
+  } = useChat();
   const { userInfo } = useAuth();
   const { socket } = useChat();
 
@@ -339,6 +346,8 @@ export default function Contacts() {
             className="search__input"
             type="text"
             placeholder="Search on messenger"
+            value={search}
+            onChange={(e: any) => setSearch(e.target.value)}
           />
         </div>
         <div className="contacts">
