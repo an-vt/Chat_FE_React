@@ -18,7 +18,7 @@ interface Props {
 }
 
 const Content = styled.div`
-  width: 450px;
+  min-width: 450px;
   background-color: #000;
   border-radius: 10px;
   position: relative;
@@ -50,11 +50,26 @@ const Content = styled.div`
     border: none;
     font-size: 18px;
     cursor: pointer;
+    padding: 0;
   }
 
   .btn-cancel:disabled,
   .btn-add:disabled {
     opacity: 0.6;
+  }
+
+  @media screen and (max-width: 767px) {
+    width: calc(100vw - 40px);
+    min-width: unset;
+    padding: 15px;
+
+    .btn-cancel {
+      font-size: 16px;
+    }
+
+    .title {
+      font-size: 22px;
+    }
   }
 `;
 

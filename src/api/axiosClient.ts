@@ -69,7 +69,7 @@ axiosClient.interceptors.response.use(
     } else {
       const status = error.response?.status;
       if (status === 401 && !originalConfig.retry) {
-        if (rememberMe) {
+        if (!originalConfig.retry && rememberMe) {
           originalConfig.retry = true;
 
           // Refresh token here
@@ -97,6 +97,9 @@ axiosClient.interceptors.response.use(
               window.location.href = "/login";
             });
         }
+        removeFromStorage(StorageKeys.ACCESS_TOKEN);
+        removeFromStorage(StorageKeys.REMEMBER_ME);
+        window.location.href = "/login";
       }
     }
     return Promise.reject(error);

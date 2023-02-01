@@ -9,11 +9,7 @@ import ChatInput from "./ChatInput";
 const Container = styled.div`
   gap: 0.1rem;
   overflow: hidden;
-  /* display: grid;
-  grid-template-rows: 90% 10%;
-  @media screen and (min-width: 720px) and (max-width: 1080px) {
-    grid-template-rows: 85% 15%;
-  } */
+  height: 100%;
   .chat-messages {
     height: 100%;
     max-height: calc(100% - 70px);

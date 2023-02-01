@@ -20,7 +20,7 @@ export default function Welcome() {
   const { userInfo } = useAuth();
 
   return (
-    <Container>
+    <Container className="welcome">
       <img src={Robot} alt="" />
       <h1>
         Welcome, <span>{userInfo.name}!</span>
