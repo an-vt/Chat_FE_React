@@ -36,6 +36,7 @@ const Container = styled.div`
     cursor: pointer;
     z-index: 1;
     display: none;
+    cursor: pointer;
   }
 
   .header {

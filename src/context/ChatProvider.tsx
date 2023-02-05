@@ -129,10 +129,20 @@ export default function ChatProvider({
       socket.current.on("msg-receive", (data: Message[]) => {
         setMessages(data);
       });
+    }
+  }, [socket.current]);
+
+  useEffect(() => {
+    if (socket.current) {
       socket.current.on("list-member-unadd-receive", (data: UserInfo[]) => {
         setDataMemberUnAdds(data);
         if (searchMemberUnAddEmpty) setMemberUnAdds(data);
       });
+    }
+  }, [socket.current]);
+
+  useEffect(() => {
+    if (socket.current) {
       socket.current.on("list-room-receive", (data: Attendee) => {
         setDataRoom(data.rooms);
         if (searchRoomEmpty) setRooms(data.rooms);

@@ -53,6 +53,7 @@ const Header = styled.div`
       border-radius: 10px;
       margin-left: auto;
       border: none;
+      cursor: pointer;
     }
   }
 
