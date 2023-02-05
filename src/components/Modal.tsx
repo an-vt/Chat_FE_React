@@ -122,6 +122,7 @@ function Modal({
                 style={{
                   opacity: getOpacityChecked(hideBtnAdd, disabledBtnAdd),
                   cursor: hideBtnAdd ? "unset" : "pointer",
+                  transition: "opacity 0.3s ease-out",
                 }}
               >
                 Create

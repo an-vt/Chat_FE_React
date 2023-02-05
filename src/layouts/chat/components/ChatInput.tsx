@@ -1,4 +1,7 @@
-import { UilMessage } from "@iconscout/react-unicons";
+import { UilMessage, UilSmile } from "@iconscout/react-unicons";
+import Picker from "emoji-picker-react";
+import { EmojiClickData } from "emoji-picker-react/dist/types/exposedTypes";
+import useClickOutSide from "hooks/useClickOutSide";
 import { useState } from "react";
 import styled from "styled-components";
 
@@ -27,10 +30,12 @@ const Container = styled.div`
       }
       .emoji-picker-react {
         position: absolute;
-        top: -350px;
-        background-color: #080420;
+        right: 0;
+        top: 0;
+        transform: translate(100%, -95%);
         box-shadow: 0 5px 10px #9a86f3;
         border-color: #9a86f3;
+        border-radius: 30px;
         .emoji-scroll-wrapper::-webkit-scrollbar {
           background-color: #080420;
           width: 5px;
@@ -62,7 +67,7 @@ const Container = styled.div`
     background-color: #ffffff34;
     input {
       width: 90%;
-      height: 60%;
+      height: 25px;
       background-color: transparent;
       color: white;
       border: none;
@@ -96,6 +101,15 @@ const Container = styled.div`
       }
     }
   }
+
+  @media screen and (max-width: 767px) {
+    margin-left: -17px;
+    padding: 1rem;
+    .button-container {
+      visibility: hidden;
+      pointer-events: none;
+    }
+  }
 `;
 
 export interface IChatInputProps {
@@ -104,21 +118,17 @@ export interface IChatInputProps {
 
 export default function ChatInput({ onSendMessage }: IChatInputProps) {
   const [msg, setMsg] = useState("");
-  //   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  //   const handleEmojiPickerhideShow = () => {
-  //     setShowEmojiPicker(!showEmojiPicker);
-  //   };
+  const { show, setShow, nodeRef } = useClickOutSide("svg");
 
-  //   const handleEmojiClick = (event, emojiObject) => {
-  //     console.log(
-  //       "🚀 ~ file: ChatInput.tsx:108 ~ handleEmojiClick ~ event, emojiObjec",
-  //       event,
-  //       emojiObjec,
-  //     );
-  //     // let message = msg;
-  //     // message += emojiObject.emoji;
-  //     // setMsg(message);
-  //   };
+  const handleEmojiPickerhideShow = () => {
+    setShow(!show);
+  };
+
+  const handleEmojiClick = (emoji: EmojiClickData) => {
+    let message = msg;
+    message += emoji.emoji;
+    setMsg(message);
+  };
 
   const sendChat = (event: any) => {
     event.preventDefault();
@@ -131,9 +141,13 @@ export default function ChatInput({ onSendMessage }: IChatInputProps) {
   return (
     <Container>
       <div className="button-container">
-        <div className="emoji">
-          {/* <BsEmojiSmileFill onClick={handleEmojiPickerhideShow} /> */}
-          {/* {showEmojiPicker && <Picker onEmojiClick={handleEmojiClick} />} */}
+        <div className="emoji" ref={nodeRef}>
+          <UilSmile onClick={handleEmojiPickerhideShow} />
+          {show && (
+            <span className="emoji-picker-react">
+              <Picker onEmojiClick={handleEmojiClick} />
+            </span>
+          )}
         </div>
       </div>
       <form className="input-container" onSubmit={(event) => sendChat(event)}>
@@ -144,7 +158,6 @@ export default function ChatInput({ onSendMessage }: IChatInputProps) {
           value={msg}
         />
         <button type="submit">
-          {/* <IoMdSend /> */}
           <UilMessage height={40} size={20} width={50} />
         </button>
       </form>

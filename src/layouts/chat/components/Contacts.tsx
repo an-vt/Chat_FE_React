@@ -1,20 +1,15 @@
-import {
-  UilAngleRightB,
-  UilPlusCircle,
-  UilPower,
-  UilSearch,
-  UilUsersAlt,
-} from "@iconscout/react-unicons";
+import { UilEdit, UilPower, UilSearch } from "@iconscout/react-unicons";
 import chatApi from "api/chatAPI";
+import useDebounce from "hooks/useDebounce";
 import { Room, RoomAdd } from "models";
 import { JoinRoomSocket } from "models/ChatSocket";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import styled from "styled-components";
 import Logo from "../../../assets/logo.svg";
-import Modal from "../../../components/Modal";
 import { useAuth } from "../../../context/AuthProvider";
 import { useChat } from "../../../context/ChatProvider";
-import SuggestItem from "./SuggestItem";
+import ModalAddChat from "./ModalAddChat";
 
 const Container = styled.div`
   position: relative;
@@ -26,6 +21,7 @@ const Container = styled.div`
 
   .btn__logout {
     position: absolute;
+    padding: 4px;
     top: 5%;
     transform: translateY(-50%);
     left: 10px;
@@ -116,7 +112,7 @@ const Container = styled.div`
     &::-webkit-scrollbar {
       width: 0.2rem;
       &-thumb {
-        background-color: #ffffff39;
+        background-color: #fff;
         width: 0.1rem;
         border-radius: 1rem;
       }
@@ -188,128 +184,27 @@ const Container = styled.div`
   }
 `;
 
-const ModalContent = styled.div`
-  .content {
-    &__input {
-      width: 100%;
-      padding: 8px;
-      font-size: 16px;
-      outline: none;
-      border: none;
-      outline: none;
-      color: #fff;
-      border-radius: 6px;
-      background-color: transparent;
-      margin-bottom: 12px;
-    }
-
-    &__input__search,
-    &__input__search::placeholder {
-      width: 100%;
-      padding: 8px;
-      font-size: 16px;
-      outline: none;
-      border: 1px solid #fff;
-      color: #000;
-      border-radius: 6px;
-    }
-  }
-
-  .suggest {
-    &__title {
-      color: white;
-      margin-left: 10px;
-    }
-
-    &__list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      overflow: auto;
-      height: 282px;
-      padding-right: 8px;
-      &::-webkit-scrollbar {
-        width: 0.2rem;
-        &-thumb {
-          background-color: #ffffff39;
-          width: 0.1rem;
-          border-radius: 1rem;
-        }
-      }
-    }
-  }
-
-  .group {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #333;
-    padding: 0 8px;
-    margin: 8px 0;
-    margin-top: 15px;
-    cursor: pointer;
-    &__left {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      &__icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 8px;
-        border: 1px solid #fff;
-        border-radius: 50%;
-      }
-      p {
-        font-size: 16px;
-        color: white;
-      }
-    }
-
-    &__right {
-      display: flex;
-      align-items: center;
-      border-radius: 1px solid #fff;
-    }
-  }
-`;
-
 export default function Contacts() {
   const [show, setShow] = useState<boolean>(false);
-  const [memberIdchecked, setMemberIdchecked] = useState<string[]>([]);
-  const [groupName, setGroupName] = useState<string>("");
-  const haveGroupName = groupName.trim().length > 0;
-  const [checkedCreateGroup, setCheckedCreateGroup] = useState<boolean>(false);
-  const {
-    rooms,
-    members,
-    memberUnAdds,
-    selectedRoom,
-    setSelectedRoom,
-    searchChat,
-  } = useChat();
+  const { rooms, selectedRoom, setSelectedRoom, searchChat } = useChat();
   const { userInfo, logout } = useAuth();
   const { socket } = useChat();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState<string>("");
+  const queryDebounce = useDebounce(query, 500);
+
+  useEffect(() => {
+    searchChat.room(queryDebounce);
+  }, [queryDebounce]);
 
   const handleKeyDown = () => {
     console.log("aaa");
   };
 
-  const handleClickCreateGroup = () => {
-    if (!checkedCreateGroup) {
-      setCheckedCreateGroup(true);
-      if (inputRef?.current) inputRef.current.value = "";
-    }
-  };
-
-  const handleAddChatSelf = async (memberId: string) => {
-    const data: RoomAdd = {
-      memberIds: [userInfo._id, memberId],
-      type: "SELF",
-    };
+  const handleAddChatSelf = async (data: RoomAdd) => {
     try {
       await chatApi.createRoom(data);
+
+      toast.success("Add Chat Successful !");
 
       // add chat for update list memberUnadds
       socket.current.emit("list-member-unadd-send", data);
@@ -317,40 +212,22 @@ export default function Contacts() {
       // update list rooms
       socket.current.emit("list-room-send", data);
     } catch (error: any) {
-      console.log(`Create chat self error : ${error.message}`);
+      toast.success(error.message);
     }
   };
 
-  const hanldeAddChatGroup = async () => {
-    const data: RoomAdd = {
-      memberIds: [...memberIdchecked, userInfo._id],
-      type: "GROUP",
-      groupName,
-    };
+  const hanldeAddChatGroup = async (data: RoomAdd) => {
     try {
       await chatApi.createRoom(data);
-    } catch (error: any) {
-      console.log(`Create chat group error : ${error.message}`);
-    }
-  };
 
-  const handleClickCheckboxMemberGroup = async (memberId: string) => {
-    const checked = !!memberIdchecked.find((item) => item === memberId);
-    if (checked) {
-      setMemberIdchecked((prevV) => prevV.filter((item) => item !== memberId));
-    } else {
-      const newMemberIdchecked = [...memberIdchecked, memberId];
-      setMemberIdchecked(newMemberIdchecked);
+      toast.success("Add Group Chat Successful !");
+    } catch (error: any) {
+      toast.success(error.message);
     }
   };
 
   const handleClickIconAdd = () => {
     setShow(true);
-  };
-
-  const handleClosePopup = () => {
-    setShow(false);
-    setCheckedCreateGroup(false);
   };
 
   const handleChangeRoom = (room: Room) => {
@@ -364,115 +241,28 @@ export default function Contacts() {
     }
   };
 
-  const handleCancel = () => {
-    if (checkedCreateGroup) {
-      setCheckedCreateGroup(false);
-      if (inputRef?.current) inputRef.current.value = "";
-    } else {
-      setShow(false);
-    }
-  };
-
   return (
     <>
-      <Modal
-        title={`New ${checkedCreateGroup ? "Group" : "Message"}`}
-        visible={show}
-        onClose={handleClosePopup}
-        onAdd={hanldeAddChatGroup}
-        onCancel={handleCancel}
-        disabledBtnAdd={memberIdchecked.length < 2 || !haveGroupName}
-        hideBtnAdd={!checkedCreateGroup}
-      >
-        <ModalContent className="content">
-          {checkedCreateGroup && (
-            <input
-              type="text"
-              className="content__input"
-              placeholder="Group name (required)"
-              onChange={(event: any) => setGroupName(event.target.value)}
-            />
-          )}
-          <input
-            ref={inputRef}
-            type="text"
-            className="content__input__search"
-            placeholder="Enter your name friend"
-            onChange={(event: any) =>
-              checkedCreateGroup
-                ? searchChat.member(event.target.value)
-                : searchChat["member-unadd"](event.target.value)
-            }
-          />
-          {!checkedCreateGroup && (
-            <div
-              className="group"
-              role="button"
-              tabIndex={0}
-              onClick={handleClickCreateGroup}
-              onKeyDown={() => console.log("key down")}
-            >
-              <div className="group__left">
-                <span className="group__left__icon">
-                  <UilUsersAlt size={30} color="white" />
-                </span>
-                <p>Create a new group</p>
-              </div>
-              <div className="group__right">
-                <UilAngleRightB color="white" />
-              </div>
-            </div>
-          )}
-          <h2 className="suggest__title">Suggested</h2>
-          <div className="suggest__list">
-            {checkedCreateGroup
-              ? members.map((item) => (
-                  <SuggestItem
-                    key={item._id}
-                    name={item.name ?? ""}
-                    image={item.avatarUrl ?? ""}
-                    checkedCreateGroup={checkedCreateGroup}
-                    memberIdchecked={memberIdchecked}
-                    onClick={
-                      checkedCreateGroup
-                        ? handleClickCheckboxMemberGroup
-                        : handleAddChatSelf
-                    }
-                    memberId={item._id}
-                  />
-                ))
-              : memberUnAdds.map((item) => (
-                  <SuggestItem
-                    key={item._id}
-                    name={item.name ?? ""}
-                    image={item.avatarUrl ?? ""}
-                    checkedCreateGroup={checkedCreateGroup}
-                    onClick={handleAddChatSelf}
-                    memberId={item._id}
-                  />
-                ))}
-          </div>
-        </ModalContent>
-      </Modal>
       <Container className="contact">
-        <button type="button" className="btn__logout" onClick={logout}>
-          <UilPower
-            style={{
-              backgroundColor: "#9a86f3",
-              color: "#ebe7ff",
-            }}
-            size={30}
-          />
-        </button>
+        <UilPower
+          className="btn__logout"
+          style={{
+            backgroundColor: "#9a86f3",
+            color: "#ebe7ff",
+          }}
+          size={25}
+          onClick={logout}
+        />
         <div className="header">
           <div className="brand">
             <img src={Logo} alt="logo" />
             <h3>snappy</h3>
           </div>
           <div className="menu">
-            <UilPlusCircle
+            <UilEdit
               className="menu__icon"
               onClick={handleClickIconAdd}
+              size={30}
             />
           </div>
         </div>
@@ -485,7 +275,7 @@ export default function Contacts() {
               className="search__content__input"
               type="text"
               placeholder="Search on messenger"
-              onChange={(e: any) => searchChat.room(e.target.value)}
+              onChange={(e: any) => setQuery(e.target.value)}
             />
           </div>
         </div>
@@ -521,6 +311,12 @@ export default function Contacts() {
           </div>
         </div>
       </Container>
+      <ModalAddChat
+        handleAddChatGroup={hanldeAddChatGroup}
+        handleAddChatSelf={handleAddChatSelf}
+        show={show}
+        setShow={setShow}
+      />
     </>
   );
 }

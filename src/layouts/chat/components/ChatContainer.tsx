@@ -13,7 +13,7 @@ const Container = styled.div`
   .chat-messages {
     height: 100%;
     max-height: calc(100% - 70px);
-    padding: 1rem 2rem;
+    padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -21,7 +21,7 @@ const Container = styled.div`
     &::-webkit-scrollbar {
       width: 0.2rem;
       &-thumb {
-        background-color: #ffffff39;
+        background-color: #fff;
         width: 0.1rem;
         border-radius: 1rem;
       }
@@ -82,7 +82,7 @@ export default function ChatContainer() {
 
         setTimeout(
           () => scrollRef.current?.scrollIntoView({ behavior: "smooth" }),
-          100,
+          300,
         );
       } catch (error: any) {
         console.log(error.message);

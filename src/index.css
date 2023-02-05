@@ -16,10 +16,6 @@ code {
     monospace;
 } */
 
-* {
-  box-sizing: inherit;
-}
-
 html {
   /* font-size mặc định trình duyệt là 16px
   62.5% là 10px
@@ -27,12 +23,22 @@ html {
   font-size: 100%;
   /* sans-serif chủng chữ không có chân */
   font-family: "Josefin Sans", sans-serif;
+  height: 100%;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
-  height: -webkit-fill-available;
+}
+
+*,
+*::before,
+*::after {
+  -webkit-box-sizing: inherit;
+  -moz-box-sizing: inherit;
+  box-sizing: inherit;
 }
 
 body {
-  height: -webkit-fill-available;
+  height: 100%;
 }
 
 p {
@@ -41,5 +47,5 @@ p {
 }
 
 #root {
-  height: -webkit-fill-available;
+  height: 100%;
 }

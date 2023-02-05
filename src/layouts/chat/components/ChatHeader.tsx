@@ -8,7 +8,7 @@ const Header = styled.div`
   align-items: center;
 
   .header__back__icon {
-    margin-left: 20px;
+    margin-left: 10px;
     width: 40px;
     height: 40px;
     display: flex;
@@ -59,6 +59,7 @@ const Header = styled.div`
   @media screen and (max-width: 767px) {
     .header__back__icon {
       display: block;
+      margin-left: 0;
     }
 
     .header__wrap {

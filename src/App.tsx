@@ -9,8 +9,7 @@ import ChatLayout from "./layouts/chat";
 import SetAvatar from "./layouts/chat/components/SetAvatar";
 
 const Container = styled.div`
-  height: 100vh;
-  height: -webkit-fill-available;
+  height: 100%;
 `;
 
 function App() {
@@ -31,7 +30,7 @@ function App() {
         </Routes>
       )}
       <ToastContainer
-        position={toast.POSITION.BOTTOM_RIGHT}
+        position={toast.POSITION.TOP_RIGHT}
         autoClose={8000}
         draggable
         pauseOnHover
