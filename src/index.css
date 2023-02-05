@@ -28,9 +28,18 @@ html {
   /* sans-serif chủng chữ không có chân */
   font-family: "Josefin Sans", sans-serif;
   box-sizing: border-box;
+  height: -webkit-fill-available;
+}
+
+body {
+  height: -webkit-fill-available;
 }
 
 p {
   font-size: 1rem;
   line-height: 1.6rem;
+}
+
+#root {
+  height: -webkit-fill-available;
 }

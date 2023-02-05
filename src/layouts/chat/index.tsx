@@ -10,7 +10,7 @@ interface ContainerProps {
 }
 
 const Container = styled.div<ContainerProps>`
-  height: 100vh;
+  height: 100%;
   width: 100vw;
   display: flex;
   flex-direction: column;
@@ -39,7 +39,7 @@ const Container = styled.div<ContainerProps>`
   @media screen and (max-width: 767px) {
     .container {
       width: 100%;
-      height: 100vh;
+      height: 100%;
       display: block;
       overflow: hidden;
     }

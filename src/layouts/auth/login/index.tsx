@@ -11,7 +11,7 @@ import { AuthLogin, UserInfo } from "../../../models";
 import { saveToStorage } from "../../../utils/storage";
 
 const FormContainer = styled.div`
-  height: 100vh;
+  height: 100%;
   width: 100vw;
   display: flex;
   flex-direction: column;
@@ -125,7 +125,6 @@ const FormContainer = styled.div`
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
     }
   }
 

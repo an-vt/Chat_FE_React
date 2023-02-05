@@ -7,7 +7,7 @@ import Logo from "../../../assets/logo.svg";
 import { AuthRegister } from "../../../models";
 
 const FormContainer = styled.div`
-  height: 100vh;
+  height: 100%;
   width: 100vw;
   display: flex;
   flex-direction: column;

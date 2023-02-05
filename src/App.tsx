@@ -1,16 +1,22 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import styled from "styled-components";
 import { useAuth } from "./context/AuthProvider";
 import "./index.css";
 import { Login, Register } from "./layouts/auth";
 import ChatLayout from "./layouts/chat";
 import SetAvatar from "./layouts/chat/components/SetAvatar";
 
+const Container = styled.div`
+  height: 100vh;
+  height: -webkit-fill-available;
+`;
+
 function App() {
   const { tokenAuthenticated } = useAuth();
   return (
-    <div>
+    <Container>
       {!tokenAuthenticated ? (
         <Routes>
           <Route path="*" element={<Navigate to="/login" />} />
@@ -32,7 +38,7 @@ function App() {
         style={{ fontSize: "14px" }}
         theme="dark"
       />
-    </div>
+    </Container>
   );
 }
 
