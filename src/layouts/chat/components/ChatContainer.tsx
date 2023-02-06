@@ -131,7 +131,11 @@ export default function ChatContainer() {
   const checkDifferentDateMessage = (
     datePrev: string,
     dateCurrent: string,
-  ): boolean => moment(datePrev).isSame(moment(dateCurrent));
+  ): boolean => {
+    return moment(datePrev, formatYYYYMMSlash).isSame(
+      moment(dateCurrent, formatYYYYMMSlash),
+    );
+  };
 
   return (
     <Container>
