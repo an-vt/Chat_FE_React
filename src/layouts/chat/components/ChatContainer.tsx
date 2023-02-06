@@ -1,10 +1,13 @@
 import chatApi from "api/chatAPI";
+import { formatYYYYMMSlash } from "common/constants";
 import { useAuth } from "context/AuthProvider";
 import { useChat } from "context/ChatProvider";
 import { Message } from "models";
+import moment from "moment";
 import { useEffect, useRef } from "react";
 import styled from "styled-components";
 import ChatInput from "./ChatInput";
+import DateSend from "./DateSend";
 
 const Container = styled.div`
   gap: 0.1rem;
@@ -16,7 +19,6 @@ const Container = styled.div`
     padding: 1rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
     overflow: auto;
     &::-webkit-scrollbar {
       width: 0.2rem;
@@ -26,50 +28,80 @@ const Container = styled.div`
         border-radius: 1rem;
       }
     }
-    .message {
+    .message__container {
       display: flex;
-      align-items: center;
-      .content {
-        max-width: 40%;
-        overflow-wrap: break-word;
-        padding: 1rem;
-        font-size: 1.1rem;
-        border-radius: 1rem;
-        color: #d1d1d1;
-        @media screen and (min-width: 720px) and (max-width: 1080px) {
-          max-width: 70%;
+      .message {
+        display: flex;
+        gap: 1rem;
+        margin: 1rem 0;
+
+        &__content {
+          /* max-width: 40%; */
+          overflow-wrap: break-word;
+          padding: 10px;
+          font-size: 1.1rem;
+          border-radius: 10px;
+          margin: 0;
+          color: #d1d1d1;
+          @media screen and (min-width: 720px) and (max-width: 1080px) {
+            max-width: 70%;
+          }
+        }
+
+        &__avatar {
+          width: 20px;
+          margin-top: auto;
+          visibility: hidden;
+          &--show {
+            visibility: visible;
+          }
+        }
+
+        &__first {
+          margin-top: 0;
         }
       }
     }
-    .sended {
-      justify-content: flex-end;
-      .content {
-        background-color: #4f04ff21;
-      }
+  }
+  .sended {
+    justify-content: flex-end;
+    .message__content {
+      background-color: #4f04ff21;
     }
-    .recieved {
-      justify-content: flex-start;
-      .content {
-        background-color: #9900ff20;
-      }
+  }
+  .recieved {
+    justify-content: flex-start;
+
+    .message {
+      flex-direction: row-reverse;
+    }
+
+    .message__content {
+      background-color: #9900ff20;
+    }
+  }
+
+  @media screen and (max-width: 767px) {
+    .message__container {
+      gap: 0.5rem;
     }
   }
 `;
 
 export default function ChatContainer() {
   const scrollRef = useRef<any>();
-  // const [arrivalMessage, setArrivalMessage] = useState(null);
   const { selectedRoom, messages, socket } = useChat();
   const { userInfo } = useAuth();
 
   const handleSendMsg = async (msg: string) => {
-    if (selectedRoom?.type === "SELF") {
+    if (selectedRoom) {
       const data: Message = {
         content: msg.trim(),
         receivers: selectedRoom.members.map((member) => member._id),
         roomId: selectedRoom._id,
         senderName: userInfo.name,
         senderUId: userInfo._id,
+        senderAvatarUrl: userInfo.avatarUrl,
         type: "TEXT",
         sendingTimestamp: new Date().toISOString(),
       };
@@ -96,25 +128,62 @@ export default function ChatContainer() {
     }, 50);
   }, [selectedRoom?._id]);
 
+  const checkDifferentDateMessage = (
+    datePrev: string,
+    dateCurrent: string,
+  ): boolean => moment(datePrev).isSame(moment(dateCurrent));
+
   return (
     <Container>
       <div className="chat-messages">
         {messages.map((message, index) => {
           return (
-            <div
-              ref={index + 1 === messages?.length ? scrollRef : null}
-              key={message._id}
-            >
+            <>
+              {index === 0 ? (
+                <DateSend
+                  date={moment(message.sendingTimestamp).format(
+                    formatYYYYMMSlash,
+                  )}
+                />
+              ) : (
+                message.sendingTimestamp &&
+                messages[index + 1]?.sendingTimestamp &&
+                !checkDifferentDateMessage(
+                  moment(message.sendingTimestamp).format(formatYYYYMMSlash),
+                  moment(messages[index + 1]?.sendingTimestamp).format(
+                    formatYYYYMMSlash,
+                  ),
+                ) && (
+                  <DateSend
+                    date={moment(message.sendingTimestamp).format(
+                      formatYYYYMMSlash,
+                    )}
+                  />
+                )
+              )}
               <div
-                className={`message ${
-                  message.senderUId === userInfo._id ? "sended" : "recieved"
-                }`}
+                ref={index + 1 === messages?.length ? scrollRef : null}
+                key={message._id}
               >
-                <div className="content ">
-                  <p>{message.content}</p>
+                <div
+                  className={`message__container ${
+                    message.senderUId === userInfo._id ? "sended" : "recieved"
+                  }`}
+                >
+                  <div className={`message ${index === 0 && "message__first"}`}>
+                    <p className="message__content">{message.content}</p>
+                    <img
+                      className={`message__avatar ${
+                        message.senderUId !== messages[index + 1]?.senderUId &&
+                        "message__avatar--show"
+                      }`}
+                      alt="avatar"
+                      src={message.senderAvatarUrl}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           );
         })}
       </div>

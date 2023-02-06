@@ -20,6 +20,7 @@ export interface Message {
   content: string;
   senderUId: string;
   senderName: string;
+  senderAvatarUrl: string;
   type: MessageType;
   roomId: string;
   receivers: string[];

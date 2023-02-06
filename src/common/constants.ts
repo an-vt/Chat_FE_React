@@ -5,3 +5,4 @@ export const StorageKeys = {
 
 export type RoomType = "SELF" | "GROUP";
 export type MessageType = "TEXT" | "IMAGE";
+export const formatYYYYMMSlash = "YYYY/MM";
