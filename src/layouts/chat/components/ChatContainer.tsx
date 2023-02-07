@@ -4,7 +4,7 @@ import { useAuth } from "context/AuthProvider";
 import { useChat } from "context/ChatProvider";
 import { Message } from "models";
 import moment from "moment";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import styled from "styled-components";
 import ChatInput from "./ChatInput";
 import DateSend from "./DateSend";
@@ -89,15 +89,14 @@ const Container = styled.div`
 `;
 
 export default function ChatContainer() {
-  const scrollRef = useRef<any>();
-  const { selectedRoom, messages, socket } = useChat();
+  const { selectedRoom, messages, socket, scrollRef } = useChat();
   const { userInfo } = useAuth();
 
   const handleSendMsg = async (msg: string) => {
     if (selectedRoom) {
       const data: Message = {
         content: msg.trim(),
-        receivers: selectedRoom.members.map((member) => member._id),
+        receivers: selectedRoom.members.map((member) => member.userId),
         roomId: selectedRoom._id,
         senderName: userInfo.name,
         senderUId: userInfo._id,
@@ -112,10 +111,8 @@ export default function ChatContainer() {
         // send to socket
         socket.current.emit("msg-send", data);
 
-        setTimeout(
-          () => scrollRef.current?.scrollIntoView({ behavior: "smooth" }),
-          300,
-        );
+        // update unread count
+        socket.current.emit("update-unread-send", data);
       } catch (error: any) {
         console.log(error.message);
       }
@@ -123,9 +120,11 @@ export default function ChatContainer() {
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      scrollRef.current?.scrollIntoView();
-    }, 50);
+    if (selectedRoom?._id) {
+      setTimeout(() => {
+        scrollRef.current?.scrollIntoView();
+      }, 500);
+    }
   }, [selectedRoom?._id]);
 
   const checkDifferentDateMessage = (
@@ -166,27 +165,30 @@ export default function ChatContainer() {
                 )
               )}
               <div
-                ref={index + 1 === messages?.length ? scrollRef : null}
-                key={message._id}
+                className={`message__container ${
+                  message.senderUId === userInfo._id ? "sended" : "recieved"
+                }`}
               >
-                <div
-                  className={`message__container ${
-                    message.senderUId === userInfo._id ? "sended" : "recieved"
-                  }`}
-                >
-                  <div className={`message ${index === 0 && "message__first"}`}>
-                    <p className="message__content">{message.content}</p>
-                    <img
-                      className={`message__avatar ${
-                        message.senderUId !== messages[index + 1]?.senderUId &&
-                        "message__avatar--show"
-                      }`}
-                      alt="avatar"
-                      src={message.senderAvatarUrl}
-                    />
-                  </div>
+                <div className={`message ${index === 0 && "message__first"}`}>
+                  <p className="message__content">{message.content}</p>
+                  <img
+                    className={`message__avatar ${
+                      message.senderUId !== messages[index + 1]?.senderUId &&
+                      "message__avatar--show"
+                    }`}
+                    alt="avatar"
+                    src={message.senderAvatarUrl}
+                  />
                 </div>
               </div>
+              {index + 1 === messages?.length && (
+                // eslint-disable-next-line react/self-closing-comp
+                <div
+                  style={{ color: "#fff" }}
+                  ref={scrollRef}
+                  key={message._id}
+                ></div>
+              )}
             </>
           );
         })}

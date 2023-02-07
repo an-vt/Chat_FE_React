@@ -74,8 +74,8 @@ const Header = styled.div`
 `;
 
 export default function ChatHeader() {
-  const { logout } = useAuth();
-  const { selectedRoom, setSelectedRoom } = useChat();
+  const { logout, userInfo } = useAuth();
+  const { selectedRoom, setSelectedRoom, socket } = useChat();
   return (
     <Header>
       <button
@@ -96,7 +96,14 @@ export default function ChatHeader() {
             </div>
           </div>
         )}
-        <button type="button" className="btn__logout" onClick={logout}>
+        <button
+          type="button"
+          className="btn__logout"
+          onClick={() => {
+            socket.current.emit("disconnect-user", userInfo._id);
+            logout();
+          }}
+        >
           <UilPower
             style={{
               backgroundColor: "#9a86f3",

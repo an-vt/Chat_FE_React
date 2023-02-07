@@ -1,4 +1,5 @@
 import userApi from "api/userAPI";
+import moment from "moment";
 import {
   createContext,
   ReactNode,
@@ -24,6 +25,7 @@ interface ChatContextType {
   messages: Message[];
   socket: any;
   searchChat: { [key in SearchType]: (search: string) => void };
+  scrollRef: any;
 }
 
 export type SearchType = "room" | "member-unadd" | "member";
@@ -36,6 +38,7 @@ const initChatContext: ChatContextType = {
   messages: [],
   socket: null,
   searchChat: {} as { [key in SearchType]: (search: string) => void },
+  scrollRef: null,
 };
 
 const ChatContext = createContext<ChatContextType>(
@@ -60,6 +63,7 @@ export default function ChatProvider({
   const [searchRoomEmpty, setSearchRoomEmpty] = useState<boolean>(false);
   const [searchMemberUnAddEmpty, setSearchMemberUnAddEmpty] =
     useState<boolean>(false);
+  const scrollRef = useRef<any>(null);
 
   const handleSearchRoom = useCallback(
     (search: string) => {
@@ -67,11 +71,29 @@ export default function ChatProvider({
         setSearchRoomEmpty(true);
       } else {
         setRooms(
-          dataRoom.filter((room) => {
-            return room.name
-              .toLowerCase()
-              .includes(search.trim().toLowerCase());
-          }),
+          dataRoom
+            .filter((room) => {
+              return room.name
+                .toLowerCase()
+                .includes(search.trim().toLowerCase());
+            })
+            .sort((room1, room2) => {
+              if (
+                moment(room1.lastUpdatedTimestamp).isAfter(
+                  moment(room2.lastUpdatedTimestamp),
+                )
+              ) {
+                return -1;
+              }
+              if (
+                moment(room1.lastUpdatedTimestamp).isBefore(
+                  moment(room2.lastUpdatedTimestamp),
+                )
+              ) {
+                return 1;
+              }
+              return 0;
+            }),
         );
       }
     },
@@ -128,6 +150,10 @@ export default function ChatProvider({
     if (socket.current) {
       socket.current.on("msg-receive", (data: Message[]) => {
         setMessages(data);
+        setTimeout(
+          () => scrollRef.current?.scrollIntoView({ behavior: "smooth" }),
+          150,
+        );
       });
     }
   }, [socket.current]);
@@ -145,7 +171,26 @@ export default function ChatProvider({
     if (socket.current) {
       socket.current.on("list-room-receive", (data: Attendee) => {
         setDataRoom(data.rooms);
-        if (searchRoomEmpty) setRooms(data.rooms);
+        if (searchRoomEmpty)
+          setRooms(
+            data.rooms.sort((room1, room2) => {
+              if (
+                moment(room1.lastUpdatedTimestamp).isAfter(
+                  moment(room2.lastUpdatedTimestamp),
+                )
+              ) {
+                return -1;
+              }
+              if (
+                moment(room1.lastUpdatedTimestamp).isBefore(
+                  moment(room2.lastUpdatedTimestamp),
+                )
+              ) {
+                return 1;
+              }
+              return 0;
+            }),
+          );
       });
     }
   }, [socket.current]);
@@ -182,7 +227,25 @@ export default function ChatProvider({
       try {
         const response = await chatApi.getListRoom(userInfo?._id);
         if (response) {
-          setRooms(response.rooms);
+          setRooms(
+            response.rooms.sort((room1, room2) => {
+              if (
+                moment(room1.lastUpdatedTimestamp).isAfter(
+                  moment(room2.lastUpdatedTimestamp),
+                )
+              ) {
+                return -1;
+              }
+              if (
+                moment(room1.lastUpdatedTimestamp).isBefore(
+                  moment(room2.lastUpdatedTimestamp),
+                )
+              ) {
+                return 1;
+              }
+              return 0;
+            }),
+          );
           setDataRoom(response.rooms);
         }
       } catch (error: any) {
@@ -215,8 +278,17 @@ export default function ChatProvider({
       messages,
       socket,
       searchChat,
+      scrollRef,
     }),
-    [rooms, members, memberUnAdds, selectedRoom, messages, searchChat],
+    [
+      rooms,
+      members,
+      memberUnAdds,
+      selectedRoom,
+      messages,
+      searchChat,
+      scrollRef,
+    ],
   );
 
   return (

@@ -2,7 +2,7 @@ import { UilEdit, UilPower, UilSearch } from "@iconscout/react-unicons";
 import chatApi from "api/chatAPI";
 import useDebounce from "hooks/useDebounce";
 import { Room, RoomAdd } from "models";
-import { JoinRoomSocket } from "models/ChatSocket";
+import { ReadMessageSocket } from "models/ChatSocket";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import styled from "styled-components";
@@ -118,6 +118,7 @@ const Container = styled.div`
         border-radius: 1rem;
       }
     }
+
     .room {
       background-color: #ffffff34;
       min-height: 5rem;
@@ -126,20 +127,39 @@ const Container = styled.div`
       border-radius: 0.8rem;
       padding: 0.4rem;
       display: flex;
-      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
       align-items: center;
       transition: 0.5s ease-in-out;
-      .avatar {
-        img {
-          width: 3rem;
+
+      &__wrap {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        .avatar {
+          img {
+            width: 3rem;
+          }
+        }
+        .username {
+          h2 {
+            color: white;
+          }
         }
       }
-      .username {
-        h2 {
-          color: white;
-        }
+
+      .unread__count {
+        background-color: red;
+        line-height: 26px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        color: white;
+        margin: 0;
+        text-align: center;
       }
     }
+
     .selected {
       background-color: #9a86f3;
     }
@@ -232,14 +252,27 @@ export default function Contacts() {
   };
 
   const handleChangeRoom = (room: Room) => {
-    if (typeof setSelectedRoom === "function") {
-      setSelectedRoom(room);
-      const data: JoinRoomSocket = {
-        userId: userInfo._id,
-        roomId: room._id,
+    if (selectedRoom) {
+      const readMessageOldRoom: ReadMessageSocket = {
+        senderId: userInfo._id,
+        roomId: selectedRoom?._id,
       };
-      socket.current.emit("join-room", data);
+      const readMessageNewRoom: ReadMessageSocket = {
+        senderId: userInfo._id,
+        roomId: room?._id,
+      };
+
+      // read message old room
+      socket.current.emit("read-message-send", readMessageOldRoom);
+
+      // read message new room
+      socket.current.emit("read-message-send", readMessageNewRoom);
     }
+    setTimeout(() => {
+      if (typeof setSelectedRoom === "function") {
+        setSelectedRoom(room);
+      }
+    }, 500);
   };
 
   return (
@@ -252,7 +285,10 @@ export default function Contacts() {
             color: "#ebe7ff",
           }}
           size={25}
-          onClick={logout}
+          onClick={() => {
+            socket.current.emit("disconnect-user", userInfo._id);
+            logout();
+          }}
         />
         <div className="header">
           <div className="brand">
@@ -293,12 +329,18 @@ export default function Contacts() {
                 onClick={() => handleChangeRoom(room)}
                 onKeyDown={handleKeyDown}
               >
-                <div className="avatar">
-                  <img src={room.avatarUrl} alt="avatar" />
+                <div className="room__wrap">
+                  <div className="avatar">
+                    <img src={room.avatarUrl} alt="avatar" />
+                  </div>
+                  <div className="username">
+                    <h2>{room.name}</h2>
+                  </div>
                 </div>
-                <div className="username">
-                  <h2>{room.name}</h2>
-                </div>
+
+                {selectedRoom?._id !== room._id && room.unreadCount > 0 && (
+                  <p className="unread__count">{room.unreadCount}</p>
+                )}
               </div>
             );
           })}

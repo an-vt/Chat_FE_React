@@ -11,7 +11,6 @@ export interface ServerToClientEvents {
 
 export interface ClientToServerEvents {
   hello: () => void;
-  "join-room": (data: any) => void;
   "connected-user": (userId: string) => void;
 }
 
